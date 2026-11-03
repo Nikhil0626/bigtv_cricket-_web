@@ -28,9 +28,12 @@ A zero-scroll, single-screen responsive Cricket Scorecard WebView built in **Rea
 
 ---
 
-## 🚀 Running the App
+## 🚀 Running the App Locally
 
 ```bash
+# Install dependencies
+npm install
+
 # Run local dev server
 npm run dev
 
@@ -39,3 +42,22 @@ npm run build
 ```
 - Local URL: `http://localhost:5173/`
 - Network URL: `http://192.168.0.79:5173/`
+
+---
+
+## 🔄 CI/CD Deployment Pipeline (GitHub Actions)
+
+A GitHub Actions deployment pipeline is located at [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+### How It Works:
+1. Every `git push` to the `main` branch triggers the workflow automatically.
+2. The pipeline checks out the repository, installs dependencies via `npm ci`, compiles Vite with `@tailwindcss/vite`, and bundles production assets into `./dist`.
+3. The built artifacts are deployed automatically to **GitHub Pages**.
+
+### One-Time Setup on GitHub:
+1. Go to your repository settings: **Settings > Pages**.
+2. Under **Build and deployment > Source**, select **GitHub Actions**.
+3. Any subsequent push to `main` will build and publish your live app to:
+   ```
+   https://nikhil0626.github.io/bigtv_cricket-_web/
+   ```
