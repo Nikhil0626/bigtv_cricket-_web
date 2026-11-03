@@ -1,4 +1,4 @@
-name: Build and Deploy Cricket Webview to GitHub Pages
+name: Build and Deploy Cricket Webview
 
 on:
   push:
@@ -6,64 +6,50 @@ on:
       - main
   workflow_dispatch:
 
-# Permissions required for GitHub Pages & branch publishing
 permissions:
   contents: write
   pages: write
   id-token: write
 
-# Prevent concurrent deployments
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
   build-and-deploy:
-    name: Build & Deploy
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      # Step 1: Checkout the code
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # Step 2: Setup Node.js runtime
-      - name: Setup Node.js Environment
+      - name: Setup Node.js Runtime
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
 
-      # Step 3: Install exact dependencies
       - name: Install Dependencies
         run: npm ci
 
-      # Step 4: Build production bundle into ./dist
-      - name: Build Vite App
+      - name: Build Production Bundle
         run: npm run build
 
-      # Step 5: Setup GitHub Pages configuration
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v5
-
-      # Step 6: Upload production artifact
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './dist'
-
-      # Step 7: Deploy directly to GitHub Pages
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-        continue-on-error: true
-
-      # Step 8: Fallback / Branch Mirror to gh-pages branch
-      - name: Publish to gh-pages Branch
+      # Primary deployment: Push built dist to gh-pages branch
+      - name: Deploy to gh-pages Branch
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           force_orphan: true
+
+      # Secondary deployment: Native GitHub Pages deployment
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        continue-on-error: true
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
