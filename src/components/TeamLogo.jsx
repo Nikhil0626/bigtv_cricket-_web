@@ -1,0 +1,112 @@
+import React from 'react';
+
+/**
+ * Team Crest / Logo component with custom SVGs inspired by Apple Sports app badges
+ */
+export default function TeamLogo({ shortName = '', name = '', size = 52, className = '' }) {
+  const code = (shortName || name || '').toUpperCase().trim();
+
+  // Color schemes and badge styles per team
+  if (code.includes('SA') || code.includes('SOUTH AFRICA')) {
+    return (
+      <div 
+        style={{ width: size, height: size }}
+        className={`relative rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-gradient-to-br from-[#007749] via-[#055737] to-[#ffb612] p-1 border border-emerald-400/30 ${className}`}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+          <circle cx="50" cy="50" r="46" fill="#006633" stroke="#FFB612" strokeWidth="4" />
+          {/* Protea / South Africa crest stylized */}
+          <path d="M50 20 C40 35 30 50 35 70 C45 80 55 80 65 70 C70 50 60 35 50 20 Z" fill="#FFB612" opacity="0.9" />
+          <path d="M50 28 C45 38 38 48 42 62 C47 68 53 68 58 62 C62 48 55 38 50 28 Z" fill="#006633" />
+          <circle cx="50" cy="50" r="7" fill="#E03C31" />
+          <text x="50" y="86" textAnchor="middle" fill="#FFFFFF" fontSize="12" fontWeight="800" fontFamily="sans-serif">SA</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (code.includes('ENG') || code.includes('ENGLAND')) {
+    return (
+      <div 
+        style={{ width: size, height: size }}
+        className={`relative rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-gradient-to-br from-[#0b2447] via-[#19376d] to-[#ce1124] p-1 border border-blue-400/30 ${className}`}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+          <circle cx="50" cy="50" r="46" fill="#0b2447" stroke="#ce1124" strokeWidth="4" />
+          {/* Three Lions Crown / Shield */}
+          <path d="M28 36 L50 24 L72 36 L72 62 C72 74 50 84 50 84 C50 84 28 74 28 62 Z" fill="#FFFFFF" opacity="0.95" />
+          {/* St George Cross */}
+          <rect x="46" y="32" width="8" height="42" fill="#ce1124" />
+          <rect x="34" y="46" width="32" height="8" fill="#ce1124" />
+          <text x="50" y="68" textAnchor="middle" fill="#0b2447" fontSize="11" fontWeight="900" fontFamily="sans-serif">ENG</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (code.includes('IND') || code.includes('INDIA')) {
+    return (
+      <div 
+        style={{ width: size, height: size }}
+        className={`relative rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-gradient-to-br from-[#FF9933] via-[#003380] to-[#138808] p-1 border border-cyan-400/40 ${className}`}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+          <circle cx="50" cy="50" r="46" fill="#003380" stroke="#FF9933" strokeWidth="4" />
+          {/* Ashoka Starburst */}
+          <circle cx="50" cy="50" r="30" fill="#0040A0" />
+          <circle cx="50" cy="50" r="24" fill="#FFFFFF" />
+          <circle cx="50" cy="50" r="18" fill="#003380" />
+          {/* 8 spokes simplified */}
+          {[0, 45, 90, 135].map((angle, i) => (
+            <line
+              key={i}
+              x1="50"
+              y1="32"
+              x2="50"
+              y2="68"
+              stroke="#0080FF"
+              strokeWidth="2.5"
+              transform={`rotate(${angle} 50 50)`}
+            />
+          ))}
+          <circle cx="50" cy="50" r="7" fill="#FF9933" />
+          <text x="50" y="86" textAnchor="middle" fill="#FFFFFF" fontSize="12" fontWeight="800" fontFamily="sans-serif">IND</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (code.includes('AUS') || code.includes('AUSTRALIA')) {
+    return (
+      <div 
+        style={{ width: size, height: size }}
+        className={`relative rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-gradient-to-br from-[#004f2d] via-[#02331c] to-[#ffcd00] p-1 border border-yellow-400/40 ${className}`}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+          <circle cx="50" cy="50" r="46" fill="#004020" stroke="#FFCD00" strokeWidth="4" />
+          {/* Southern cross stars & Kangaroo stylized */}
+          <path d="M30 65 Q45 35 60 40 Q75 35 70 65 Q50 68 30 65 Z" fill="#FFCD00" />
+          <circle cx="50" cy="30" r="4.5" fill="#FFFFFF" />
+          <circle cx="65" cy="40" r="3.5" fill="#FFFFFF" />
+          <circle cx="35" cy="42" r="3.5" fill="#FFFFFF" />
+          <circle cx="50" cy="52" r="4" fill="#FFFFFF" />
+          <text x="50" y="85" textAnchor="middle" fill="#FFCD00" fontSize="12" fontWeight="800" fontFamily="sans-serif">AUS</text>
+        </svg>
+      </div>
+    );
+  }
+
+  // Fallback generic elegant badge with initials
+  const initials = (code.slice(0, 3) || 'CRK').toUpperCase();
+  return (
+    <div 
+      style={{ width: size, height: size }}
+      className={`relative rounded-full flex items-center justify-center shadow-lg bg-gradient-to-tr from-stone-900 via-stone-800 to-amber-900 border border-white/20 ${className}`}
+    >
+      <span className="text-white font-extrabold tracking-wider text-xs">
+        {initials}
+      </span>
+    </div>
+  );
+}
+
