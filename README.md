@@ -1,4 +1,4 @@
-# Cricket Live Scorecard WebView
+# Cricket Live & Recent Scorecard WebView
 
 A zero-scroll, single-screen responsive Cricket Scorecard WebView built in **React** + **Vite** + **Tailwind CSS**, designed after the **Apple Sports** dark glassmorphism UI.
 
@@ -9,22 +9,19 @@ A zero-scroll, single-screen responsive Cricket Scorecard WebView built in **Rea
 - **Single Screen Fit (Zero Scroll)**:
   - Fits 100% within a single screen (`h-[100dvh] overflow-hidden`) on mobile devices and WebViews with **no vertical page scrolling**.
   - All critical elements—Hero Scoreboard, 3D Isometric Pitch, Innings Table, Live Sync Action Pill, and Active Batting/Bowling & Team Stats Cards—are immediately visible simultaneously.
-- **Genuine Web App Layout**:
-  - Removed artificial phone mockup frames, simulated status bars, and notch overlays.
-  - Renders as a true web interface: stretches edge-to-edge on mobile devices, and centers cleanly on desktop monitors (`max-w-[430px]`).
-- **5-Minute Live PravasaMedia API Polling**:
-  - Automatically fetches `GET https://api.pravasamedia.com/api/v1/cricket/matches/live` on load.
-  - Passes the first match ID (e.g. `1002`) to `GET https://api.pravasamedia.com/api/v1/cricket/matches/{matchId}/livescore`.
+- **Recent Matches API Integration**:
+  - Automatically fetches `GET https://api.pravasamedia.com/api/v1/cricket/matches/recent` on load.
+  - Takes the first match ID (e.g. `1000`: India vs Australia 2nd T20I at Sydney Cricket Ground) and fetches `GET https://api.pravasamedia.com/api/v1/cricket/matches/1000/livescore`.
+  - Automatically adapts the display to show **FINAL** status, match winner, margin (+18 runs), run rates, top performers (Kohli, Pandya, Bumrah), and full innings scorecard.
   - **Auto-polls every 5 minutes (300 seconds)** with a live countdown display (`4:59`, `4:58`, ...), pulse indicator, and pause/resume button.
   - Provides a manual **"Live Sync"** button to immediately hit the API at any time.
-  - If multiple live matches exist, tap **Today** to reveal the match dropdown selector.
 - **Apple Sports UI**:
   - Deep crimson-ruby radial glow gradient background.
-  - Large typography hero scores with custom SVG badges for SA, ENG, IND, AUS.
-  - 3D Isometric Pitch tracking current over and target chase progress.
-  - Quarters/Innings table breakdown.
-  - Interactive tabs: `Stats`, `Betting Odds`, `Play-By-Play`, `Scorecard`.
-  - Dual red comparison bars for current run rate vs. required run rate, and target equations.
+  - Large typography hero scores with custom SVG badges for IND, AUS, SA, ENG.
+  - 3D Isometric Pitch tracking Sydney Cricket Ground match conclusion.
+  - Quarters/Innings table breakdown (IND 188/6 @ 9.40 RR vs AUS 170/9 @ 8.50 RR).
+  - Interactive tabs: `Stats`, `Match Result`, `Play-By-Play`, `Scorecard`.
+  - Dual red comparison bars for match run rates and totals.
 
 ---
 
@@ -45,19 +42,6 @@ npm run build
 
 ---
 
-## 🔄 CI/CD Deployment Pipeline (GitHub Actions)
+## 🌐 Live GitHub Pages Deployment
 
-A GitHub Actions deployment pipeline is located at [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
-
-### How It Works:
-1. Every `git push` to the `main` branch triggers the workflow automatically.
-2. The pipeline checks out the repository, installs dependencies via `npm ci`, compiles Vite with `@tailwindcss/vite`, and bundles production assets into `./dist`.
-3. The built artifacts are deployed automatically to **GitHub Pages**.
-
-### One-Time Setup on GitHub:
-1. Go to your repository settings: **Settings > Pages**.
-2. Under **Build and deployment > Source**, select **GitHub Actions**.
-3. Any subsequent push to `main` will build and publish your live app to:
-   ```
-   https://nikhil0626.github.io/bigtv_cricket-_web/
-   ```
+- Live URL: **`https://nikhil0626.github.io/bigtv_cricket-_web/`**
