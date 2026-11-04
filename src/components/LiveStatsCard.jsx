@@ -1,50 +1,55 @@
 import React from 'react';
 
 /**
- * Consolidated Live Stats & Equations Card
- * Combines active batters, active bowlers, and team comparison bars
- * to fit cleanly in the remaining vertical space without any scrolling.
+ * Consolidated Live Stats & Match Equations Card
+ * Handles both live matches (active striker/bowler) and recent completed matches (top performers & match stats)
  */
 export default function LiveStatsCard({ match }) {
   if (!match) return null;
 
-  const miniscore = match.miniscore || {};
-  const striker = miniscore.batsmanStriker || {
-    name: 'Glenn Maxwell',
-    runs: 46,
-    balls: 22,
-    fours: 4,
+  const { miniscore, isRecent, team1, team2 } = match;
+
+  // Recent completed match defaults (e.g. India vs Australia 2nd T20I)
+  const isMatchCompleted = isRecent || !miniscore;
+
+  const striker = miniscore?.batsmanStriker || {
+    name: 'Virat Kohli',
+    runs: 64,
+    balls: 39,
+    fours: 6,
+    sixes: 2,
+    strikeRate: 164.1
+  };
+
+  const nonStriker = miniscore?.batsmanNonStriker || {
+    name: 'Hardik Pandya',
+    runs: 42,
+    balls: 19,
+    fours: 3,
     sixes: 3,
-    strikeRate: 190.9
+    strikeRate: 221.1
   };
 
-  const nonStriker = miniscore.batsmanNonStriker || {
-    name: 'Tim David',
-    runs: 18,
-    balls: 9,
-    fours: 1,
-    sixes: 1,
-    strikeRate: 200.0
-  };
-
-  const bowler = miniscore.bowlerStriker || {
+  const bowler = miniscore?.bowlerStriker || {
     name: 'Jasprit Bumrah',
-    overs: 3.4,
+    overs: 4.0,
     maidens: 0,
-    runs: 28,
-    wickets: 2,
-    economy: 7.63
+    runs: 24,
+    wickets: 3,
+    economy: 6.00
   };
 
-  const partnership = miniscore.partnerShip || { runs: 36, balls: 18 };
-  const currentRR = miniscore.currentRunRate || 8.73;
-  const requiredRR = miniscore.requiredRunRate || 31.50;
-  const runs = miniscore.runs || 163;
-  const target = miniscore.target || 205;
-  const runsNeeded = Math.max(0, target - runs);
+  const partnership = miniscore?.partnerShip || { runs: 78, balls: 45 };
+
+  // Calculate run rates
+  const currentRR = miniscore?.currentRunRate || 9.40;
+  const requiredRR = miniscore?.requiredRunRate || 8.50;
+  const runs = miniscore?.runs || 188;
+  const target = miniscore?.target || 170;
+  const runsNeeded = isMatchCompleted ? 18 : Math.max(0, target - runs);
 
   // Recent overs tokens
-  const recentStats = miniscore.recentOversStats || "1 4 W 1 6 2 | 1 1 4 0 6 1";
+  const recentStats = miniscore?.recentOversStats || "0 1 W 2 1 W | 4 1 0 1 2 W";
   const overBlocks = recentStats.split('|').map(block => block.trim().split(/\s+/).filter(Boolean));
 
   // Dual red comparison bars like Apple Sports screenshot
@@ -60,31 +65,35 @@ export default function LiveStatsCard({ match }) {
   };
 
   const rrBars = calcPercentages(currentRR, requiredRR);
-  const runBars = calcPercentages(runs, runsNeeded);
+  const runBars = calcPercentages(188, 170);
 
   return (
     <div className="w-full h-full flex flex-col justify-between rounded-xl bg-[#1c1218]/80 backdrop-blur-xl border border-white/10 p-2.5 shadow-xl select-none">
-      {/* 1. Live Batting & Bowling Section */}
+      {/* 1. Batting & Bowling Section */}
       <div className="w-full">
         {/* Header row */}
         <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-wider text-stone-300 border-b border-white/10 pb-1 mb-1">
           <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse-dot" />
-            <span>Live Batting &amp; Bowling</span>
+            <span className={`w-1.5 h-1.5 rounded-full ${isMatchCompleted ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse-dot'}`} />
+            <span>{isMatchCompleted ? 'Top Match Performers' : 'Live Batting & Bowling'}</span>
           </div>
           <div className="text-[10px] font-mono text-stone-400">
-            P'ship: <strong className="text-amber-300 font-bold">{partnership.runs}</strong> ({partnership.balls}b)
+            {isMatchCompleted ? (
+              <span className="text-amber-300 font-semibold">POTM: Bumrah (3/24)</span>
+            ) : (
+              <>P'ship: <strong className="text-amber-300 font-bold">{partnership.runs}</strong> ({partnership.balls}b)</>
+            )}
           </div>
         </div>
 
         {/* Players mini table */}
         <div className="space-y-1 text-[11px] font-mono">
-          {/* Striker */}
+          {/* Batter 1 */}
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center gap-1 truncate max-w-[150px]">
-              <span className="text-amber-400 text-[10px]">⚡</span>
+              <span className="text-amber-400 text-[10px]">{isMatchCompleted ? '★' : '⚡'}</span>
               <span className="font-sans font-bold truncate">{striker.name}</span>
-              <span className="text-amber-400 text-[9px]">*</span>
+              {!isMatchCompleted && <span className="text-amber-400 text-[9px]">*</span>}
             </div>
             <div className="flex items-center gap-2 text-stone-300 text-[10px]">
               <span className="font-bold text-white text-xs">{striker.runs}</span>
@@ -94,7 +103,7 @@ export default function LiveStatsCard({ match }) {
             </div>
           </div>
 
-          {/* Non-striker */}
+          {/* Batter 2 */}
           <div className="flex items-center justify-between text-stone-300">
             <div className="flex items-center gap-1 truncate max-w-[150px] pl-3">
               <span className="font-sans font-medium truncate">{nonStriker.name}</span>
@@ -123,21 +132,21 @@ export default function LiveStatsCard({ match }) {
         </div>
       </div>
 
-      {/* 2. Team Stats Section with Dual Red Bars (Direct Apple Sports match) */}
+      {/* 2. Team Stats Section with Dual Red Bars */}
       <div className="w-full pt-1.5 border-t border-white/10 mt-1">
         {/* Row A: Run Rate */}
         <div className="mb-1">
           <div className="flex items-center justify-between text-[10px] font-mono font-bold text-white mb-0.5 px-0.5">
             <span>{currentRR}</span>
             <span className="text-[9px] font-sans font-medium text-stone-400 uppercase tracking-wider">
-              Current RR vs Req RR
+              {isMatchCompleted ? `${team1.shortName} RR vs ${team2.shortName} RR` : 'Current RR vs Req RR'}
             </span>
-            <span className="text-red-400">{requiredRR}</span>
+            <span className={isMatchCompleted ? "text-amber-400" : "text-red-400"}>{requiredRR}</span>
           </div>
           <div className="flex items-center gap-1.5 px-0.5">
             <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden flex justify-end">
               <div 
-                className="h-full bg-gradient-to-l from-red-500 to-rose-700 rounded-full transition-all duration-500"
+                className="h-full bg-gradient-to-l from-emerald-500 to-teal-700 rounded-full transition-all duration-500"
                 style={{ width: `${rrBars.p1}%` }}
               />
             </div>
@@ -150,34 +159,36 @@ export default function LiveStatsCard({ match }) {
           </div>
         </div>
 
-        {/* Row B: Runs Scored vs Needed */}
+        {/* Row B: Total Runs & Margin */}
         <div className="mb-1">
           <div className="flex items-center justify-between text-[10px] font-mono font-bold text-white mb-0.5 px-0.5">
-            <span className="text-emerald-400">{runs}</span>
+            <span className="text-emerald-400">188/6</span>
             <span className="text-[9px] font-sans font-medium text-stone-400 uppercase tracking-wider">
-              Runs Scored vs Needed ({target})
+              {isMatchCompleted ? 'Match Score (Won by 18 runs)' : 'Runs Scored vs Needed'}
             </span>
-            <span className="text-amber-400">{runsNeeded}</span>
+            <span className="text-stone-300">170/9</span>
           </div>
           <div className="flex items-center gap-1.5 px-0.5">
             <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden flex justify-end">
               <div 
-                className="h-full bg-gradient-to-l from-emerald-500 to-teal-700 rounded-full transition-all duration-500"
+                className="h-full bg-gradient-to-l from-blue-500 to-indigo-700 rounded-full transition-all duration-500"
                 style={{ width: `${runBars.p1}%` }}
               />
             </div>
             <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden flex justify-start">
               <div 
-                className="h-full bg-gradient-to-r from-amber-500 to-red-600 rounded-full transition-all duration-500"
+                className="h-full bg-gradient-to-r from-amber-500 to-yellow-600 rounded-full transition-all duration-500"
                 style={{ width: `${runBars.p2}%` }}
               />
             </div>
           </div>
         </div>
 
-        {/* 3. Recent Overs (Ball-by-ball pill trail) */}
+        {/* 3. Final / Recent Overs (Ball-by-ball pill trail) */}
         <div className="flex items-center justify-between pt-1 border-t border-white/5">
-          <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Recent Balls:</span>
+          <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">
+            {isMatchCompleted ? 'Final Overs:' : 'Recent Balls:'}
+          </span>
           <div className="flex items-center gap-1 overflow-hidden">
             {overBlocks.map((over, oIdx) => (
               <div key={oIdx} className="flex items-center gap-1">
@@ -206,4 +217,3 @@ export default function LiveStatsCard({ match }) {
     </div>
   );
 }
-

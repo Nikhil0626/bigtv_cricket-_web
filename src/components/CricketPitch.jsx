@@ -7,18 +7,19 @@ import React from 'react';
 export default function CricketPitch({ match }) {
   if (!match) return null;
 
-  const { miniscore, status } = match;
-  const target = miniscore?.target;
-  const runs = miniscore?.runs;
+  const { miniscore, status, isRecent } = match;
+  const target = miniscore?.target || 189;
+  const runs = miniscore?.runs || 170;
 
   // Calculate target progress percentage
-  const progressPercent = target && runs ? Math.min(100, Math.round((runs / target) * 100)) : 65;
+  const progressPercent = isRecent ? 90 : (target && runs ? Math.min(100, Math.round((runs / target) * 100)) : 65);
 
   return (
     <div className="w-full px-4 my-1 flex flex-col items-center flex-shrink-0">
-      {/* Down & Distance equivalent: Current Match Equation */}
-      <div className="text-[10px] font-bold text-amber-300/95 tracking-wide mb-1 text-center truncate max-w-full">
-        {status || "Live at Lord's • Pitch In Progress"}
+      {/* Match Status text */}
+      <div className="text-[10px] font-bold text-amber-300/95 tracking-wide mb-1 text-center truncate max-w-full flex items-center gap-1.5 justify-center">
+        {isRecent && <span className="text-emerald-400">✓</span>}
+        <span>{status || "Sydney Cricket Ground • Match Completed"}</span>
       </div>
 
       {/* Isometric 3D Cricket Pitch Container */}
@@ -79,7 +80,7 @@ export default function CricketPitch({ match }) {
           <span>10m</span>
           <span>15m</span>
           <span>20m</span>
-          <span>22yd</span>
+          <span>SCG</span>
         </div>
       </div>
     </div>

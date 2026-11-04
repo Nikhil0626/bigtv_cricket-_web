@@ -5,52 +5,68 @@ export default function PlayByPlayTab({ match }) {
 
   const commentaryList = [
     {
-      over: '18.4',
+      over: '19.6',
       bowler: 'Jasprit Bumrah',
-      batter: 'Glenn Maxwell',
-      runs: 2,
-      type: 'runs',
-      text: 'Full on the pads, Maxwell flicks it through mid-wicket for a sharp two.'
-    },
-    {
-      over: '18.3',
-      bowler: 'Jasprit Bumrah',
-      batter: 'Glenn Maxwell',
-      runs: 6,
-      type: 'six',
-      text: 'SIX! Bumrah goes short, Maxwell pulls over deep square leg into the stands! 88m!'
-    },
-    {
-      over: '18.2',
-      bowler: 'Jasprit Bumrah',
-      batter: 'Glenn Maxwell',
-      runs: 1,
-      type: 'single',
-      text: 'Searing yorker on off, Maxwell digs it out to point for a single.'
-    },
-    {
-      over: '18.1',
-      bowler: 'Jasprit Bumrah',
-      batter: 'Marcus Stoinis',
+      batter: 'Mitchell Starc',
       runs: 'W',
       type: 'wicket',
-      text: 'OUT! CAUGHT BEHIND! Slashed on the up, faint edge straight to the keeper!'
+      text: 'OUT! CLEAN BOWLED! Bumrah finishes in supreme style! 142kph toe-crusher rips out middle stump! India seal an 18-run victory at the SCG!'
     },
     {
-      over: '17.6',
-      bowler: 'Arshdeep Singh',
-      batter: 'Tim David',
-      runs: 4,
-      type: 'four',
-      text: 'FOUR! Smashed down the ground over mid-off for a cracking boundary!'
-    },
-    {
-      over: '17.5',
-      bowler: 'Arshdeep Singh',
-      batter: 'Glenn Maxwell',
+      over: '19.5',
+      bowler: 'Jasprit Bumrah',
+      batter: 'Adam Zampa',
       runs: 1,
       type: 'single',
-      text: 'Good length outside off, steered down to third man for one.'
+      text: 'Pinpoint yorker on leg stump, jammed out into the off-side for a single.'
+    },
+    {
+      over: '19.4',
+      bowler: 'Jasprit Bumrah',
+      batter: 'Tim David',
+      runs: 'W',
+      type: 'wicket',
+      text: 'OUT! CAUGHT AT LONG-ON! Slower cutter into the deck, David tries to clear the ropes, mistimes it straight down Hardik Pandya throat!'
+    },
+    {
+      over: '19.3',
+      bowler: 'Jasprit Bumrah',
+      batter: 'Tim David',
+      runs: 2,
+      type: 'runs',
+      text: 'Full and angled into the pads, flicked wide of long-on for a hurried couple.'
+    },
+    {
+      over: '19.2',
+      bowler: 'Jasprit Bumrah',
+      batter: 'Tim David',
+      runs: 0,
+      type: 'dot',
+      text: 'Dot ball! Perfect blockhole yorker, David cannot get underneath it!'
+    },
+    {
+      over: '18.6',
+      bowler: 'Arshdeep Singh',
+      batter: 'Mitchell Marsh',
+      runs: 'W',
+      type: 'wicket',
+      text: 'OUT! CAUGHT! Crucial wicket! Marsh looks to launch over extra cover, slice flies to Virat Kohli who takes a tumbling catch!'
+    },
+    {
+      over: '18.5',
+      bowler: 'Arshdeep Singh',
+      batter: 'Mitchell Marsh',
+      runs: 6,
+      type: 'six',
+      text: 'SIX! Crunched into the SCG stands! Marsh deposits the slot ball 89 meters over long-on!'
+    },
+    {
+      over: '18.4',
+      bowler: 'Arshdeep Singh',
+      batter: 'Tim David',
+      runs: 1,
+      type: 'single',
+      text: 'Full toss pushed down to mid-off for one.'
     }
   ];
 
@@ -65,8 +81,8 @@ export default function PlayByPlayTab({ match }) {
       {/* Filter Chips */}
       <div className="flex items-center gap-1.5 pb-1 border-b border-white/10 flex-shrink-0">
         {[
-          { id: 'all', label: 'All' },
-          { id: 'boundaries', label: 'Boundaries (4s & 6s)' },
+          { id: 'all', label: 'All Balls' },
+          { id: 'boundaries', label: 'Boundaries (6s)' },
           { id: 'wickets', label: 'Wickets 🔴' },
         ].map(chip => (
           <button
@@ -87,8 +103,8 @@ export default function PlayByPlayTab({ match }) {
       <div className="flex-1 overflow-y-auto no-scrollbar space-y-1.5 py-1">
         {filtered.map((item, idx) => {
           let badgeBg = 'bg-stone-800 text-stone-300 border-stone-700';
-          if (item.type === 'wicket') badgeBg = 'bg-red-600 text-white font-extrabold border-red-400';
-          if (item.type === 'six') badgeBg = 'bg-purple-600 text-white font-extrabold border-purple-400';
+          if (item.type === 'wicket') badgeBg = 'bg-red-600 text-white font-extrabold border-red-400 shadow-[0_0_6px_rgba(239,68,68,0.7)]';
+          if (item.type === 'six') badgeBg = 'bg-purple-600 text-white font-extrabold border-purple-400 shadow-[0_0_6px_rgba(168,85,247,0.7)]';
           if (item.type === 'four') badgeBg = 'bg-emerald-600 text-white font-extrabold border-emerald-400';
 
           return (

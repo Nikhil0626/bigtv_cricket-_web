@@ -4,7 +4,7 @@ import {
   ChevronDown, 
   AlertCircle
 } from 'lucide-react';
-import { getLiveMatches, getMatchLiveScore, normalizeMatch } from './services/api';
+import { getRecentMatches, getMatchLiveScore, normalizeMatch } from './services/api';
 import ScoreHero from './components/ScoreHero';
 import CricketPitch from './components/CricketPitch';
 import InningsTable from './components/InningsTable';
@@ -40,22 +40,22 @@ export default function App() {
     setLastSyncedText(`Synced ${timeStr}`);
   };
 
-  // 1. Initial Load: Fetch Live Matches API
-  // curl -X 'GET' 'https://api.pravasamedia.com/api/v1/cricket/matches/live'
+  // 1. Initial Load: Fetch Recent Matches API
+  // curl -X 'GET' 'https://api.pravasamedia.com/api/v1/cricket/matches/recent'
   const loadInitialData = async () => {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const liveRes = await getLiveMatches();
-      const fetchedMatches = liveRes.matches || [];
+      const recentRes = await getRecentMatches();
+      const fetchedMatches = recentRes.matches || [];
       setMatches(fetchedMatches);
 
       if (fetchedMatches.length > 0) {
-        // Send the first ID in the live matches list as input
-        const firstMatchId = fetchedMatches[0].matchId || '1002';
+        // Send the first ID in the recent matches list as input
+        const firstMatchId = fetchedMatches[0].matchId || '1000';
         setSelectedMatchId(firstMatchId);
         
-        // 2. Fetch Match Live Score API for the first match
+        // 2. Fetch Match Live Score API for the first match (ID 1000)
         // curl -X 'GET' 'https://api.pravasamedia.com/api/v1/cricket/matches/{matchId}/livescore'
         const scoreRes = await getMatchLiveScore(firstMatchId);
         const normalized = normalizeMatch(fetchedMatches[0], scoreRes.scoreData);
@@ -64,8 +64,8 @@ export default function App() {
         updateLastSyncedTime();
       }
     } catch (err) {
-      console.error('Failed to load live cricket matches:', err);
-      setErrorMessage(err.message || 'Unable to connect to live cricket API');
+      console.error('Failed to load recent cricket matches:', err);
+      setErrorMessage(err.message || 'Unable to connect to cricket API');
     } finally {
       setLoading(false);
     }
@@ -101,14 +101,14 @@ export default function App() {
 
     setRefreshing(true);
     try {
-      const [liveRes, scoreRes] = await Promise.all([
-        getLiveMatches(),
+      const [recentRes, scoreRes] = await Promise.all([
+        getRecentMatches(),
         getMatchLiveScore(matchId)
       ]);
-      if (liveRes.matches) {
-        setMatches(liveRes.matches);
+      if (recentRes.matches) {
+        setMatches(recentRes.matches);
       }
-      const matchOverview = liveRes.matches?.find(m => String(m.matchId) === String(matchId));
+      const matchOverview = recentRes.matches?.find(m => String(m.matchId) === String(matchId));
       const normalized = normalizeMatch(matchOverview, scoreRes.scoreData);
       setCurrentMatch(normalized);
       setSecondsLeft(FIVE_MINUTES_SECONDS);
@@ -120,7 +120,7 @@ export default function App() {
     }
   }, []);
 
-  // 5. Auto Refresh Polling: hits the live score API every 5 minutes (300 seconds)
+  // 5. Auto Refresh Polling: hits the API every 5 minutes (300 seconds)
   useEffect(() => {
     if (!autoRefresh || !selectedMatchId) return;
 
@@ -140,7 +140,7 @@ export default function App() {
   const handleShareClick = () => {
     if (navigator.share && currentMatch) {
       navigator.share({
-        title: `${currentMatch.team1?.name} vs ${currentMatch.team2?.name} - Live Score`,
+        title: `${currentMatch.team1?.name} vs ${currentMatch.team2?.name} - Cricket Scorecard`,
         text: `${currentMatch.status}`,
         url: window.location.href,
       }).catch(() => {});
@@ -150,6 +150,8 @@ export default function App() {
       setTimeout(() => setCopiedShare(false), 2000);
     }
   };
+
+  const isFinal = currentMatch?.isRecent || currentMatch?.state === 'recent';
 
   return (
     <div className="w-full h-[100dvh] max-h-[100dvh] bg-[#080204] text-white flex flex-col items-center justify-between overflow-hidden select-none">
@@ -162,11 +164,18 @@ export default function App() {
       >
         {/* Top Header Bar matching Apple Sports (Today + Dropdown + Share button) */}
         <header className="w-full pt-2 pb-1 px-4 flex items-center justify-between z-30 flex-shrink-0">
-          {/* Left: Live pulse pill */}
-          <div className="flex items-center gap-1.5 bg-black/40 px-2 py-0.5 rounded-full border border-white/10 backdrop-blur-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse-dot" />
-            <span className="text-[10px] font-bold text-red-400 tracking-wider">LIVE</span>
-          </div>
+          {/* Left: Final or Live Badge */}
+          {isFinal ? (
+            <div className="flex items-center gap-1.5 bg-amber-950/70 px-2.5 py-0.5 rounded-full border border-amber-500/30 backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span className="text-[10px] font-bold text-amber-300 tracking-wider">FINAL</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 bg-black/40 px-2 py-0.5 rounded-full border border-white/10 backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse-dot" />
+              <span className="text-[10px] font-bold text-red-400 tracking-wider">LIVE</span>
+            </div>
+          )}
 
           {/* Center Title: "Today" with match switch dropdown */}
           <div className="relative">
@@ -174,7 +183,7 @@ export default function App() {
               onClick={() => setShowMatchPicker(!showMatchPicker)}
               className="flex items-center gap-1 text-white font-bold text-sm tracking-tight hover:text-stone-200 transition-colors"
             >
-              <span>Today</span>
+              <span>Recent Matches</span>
               {matches.length > 1 && (
                 <ChevronDown className={`w-3.5 h-3.5 text-stone-400 transition-transform ${showMatchPicker ? 'rotate-180' : ''}`} />
               )}
@@ -184,7 +193,7 @@ export default function App() {
             {showMatchPicker && matches.length > 1 && (
               <div className="absolute top-7 left-1/2 -translate-x-1/2 w-56 rounded-xl bg-black/90 border border-white/15 p-1 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in zoom-in-95">
                 <div className="text-[9px] uppercase font-bold text-stone-400 px-2 py-1 border-b border-white/10">
-                  Select Live Match
+                  Select Match
                 </div>
                 {matches.map(m => (
                   <button
@@ -197,14 +206,14 @@ export default function App() {
                     }`}
                   >
                     <span className="truncate">{m.team1ShortName || m.team1Name} vs {m.team2ShortName || m.team2Name}</span>
-                    <span className="text-[9px] px-1 rounded bg-stone-800 text-amber-300">{m.matchFormat || 'LIVE'}</span>
+                    <span className="text-[9px] px-1 rounded bg-stone-800 text-amber-300">{m.matchFormat || 'T20'}</span>
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Right Action: Share Button (matches circular button in screenshot) */}
+          {/* Right Action: Share Button */}
           <button
             onClick={handleShareClick}
             aria-label="Share scorecard"
@@ -218,8 +227,8 @@ export default function App() {
         {loading && (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <div className="w-10 h-10 rounded-full border-2 border-red-500/30 border-t-red-500 animate-spin mb-3" />
-            <p className="text-xs font-semibold text-stone-200">Loading Live Cricket Score...</p>
-            <p className="text-[10px] text-stone-400 mt-0.5">Connecting to pravasamedia API</p>
+            <p className="text-xs font-semibold text-stone-200">Loading Cricket Scorecard...</p>
+            <p className="text-[10px] text-stone-400 mt-0.5">Fetching from pravasamedia API</p>
           </div>
         )}
 
@@ -265,11 +274,11 @@ export default function App() {
 
             {/* Bottom Group: Tab Selector + Bottom Glass Card */}
             <div className="w-full flex-1 min-h-0 flex flex-col justify-between px-3 pb-2 pt-1 overflow-hidden">
-              {/* Navigation Tabs (Stats, Betting Odds, Play-By-Play, Scorecard) */}
+              {/* Navigation Tabs (Stats, Betting Odds / Result, Play-By-Play, Scorecard) */}
               <div className="w-full flex items-center justify-around border-b border-white/10 text-xs font-semibold mb-1 flex-shrink-0 select-none">
                 {[
                   { id: 'stats', label: 'Stats' },
-                  { id: 'odds', label: 'Betting Odds' },
+                  { id: 'odds', label: isFinal ? 'Match Result' : 'Betting Odds' },
                   { id: 'playbyplay', label: 'Play-By-Play' },
                   { id: 'scorecard', label: 'Scorecard' },
                 ].map(tab => {
@@ -295,12 +304,12 @@ export default function App() {
 
               {/* Dynamic Bottom Card Container (Takes remaining height, zero page scroll) */}
               <div className="w-full flex-1 min-h-0 overflow-hidden">
-                {/* STATS TAB: Batting/Bowling + Team Stats with dual red bars (Default) */}
+                {/* STATS TAB: Top Performers / Batting/Bowling + Team Stats with dual red bars (Default) */}
                 {activeTab === 'stats' && (
                   <LiveStatsCard match={currentMatch} />
                 )}
 
-                {/* BETTING ODDS TAB: Exactly matches "Betting Odds" card in screenshot */}
+                {/* BETTING ODDS / RESULT TAB */}
                 {activeTab === 'odds' && (
                   <BettingOddsCard match={currentMatch} />
                 )}

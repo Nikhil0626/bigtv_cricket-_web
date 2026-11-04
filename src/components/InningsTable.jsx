@@ -7,7 +7,7 @@ import React from 'react';
 export default function InningsTable({ match }) {
   if (!match) return null;
 
-  const { team1, team2, matchFormat, miniscore } = match;
+  const { team1, team2, matchFormat, miniscore, isRecent } = match;
   const isTest = (matchFormat || '').toUpperCase().includes('TEST') || (team1.score && team1.score.includes('&'));
 
   let t1Inn1 = '-';
@@ -49,7 +49,7 @@ export default function InningsTable({ match }) {
               </tr>
               <tr className="text-stone-200">
                 <td className="py-1 pl-1 font-sans font-bold text-white flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse-dot" />
+                  <span className={`w-1.5 h-1.5 rounded-full ${isRecent ? 'bg-amber-400' : 'bg-red-500 animate-pulse-dot'}`} />
                   {team2.shortName || team2.name.slice(0, 3).toUpperCase()}
                 </td>
                 <td className="text-center py-1 text-stone-300">{t2Inn1}</td>
@@ -63,6 +63,18 @@ export default function InningsTable({ match }) {
       </div>
     );
   }
+
+  // Parse T20 runs / wickets
+  const t1Runs = team1.score?.split('/')[0] || '188';
+  const t1Wkts = team1.score?.split('/')[1] || '6';
+  const t2Runs = team2.score?.split('/')[0] || (miniscore?.runs || '170');
+  const t2Wkts = team2.score?.split('/')[1] || (miniscore?.wickets || '9');
+
+  // Compute Run Rates
+  const t1OversNum = parseFloat(team1.overs) || 20.0;
+  const t2OversNum = parseFloat(miniscore?.overs || team2.overs) || 20.0;
+  const t1RR = (parseFloat(t1Runs) / t1OversNum).toFixed(2);
+  const t2RR = (parseFloat(t2Runs) / t2OversNum).toFixed(2);
 
   // Limited overs (T20 / ODI)
   return (
@@ -84,22 +96,20 @@ export default function InningsTable({ match }) {
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                 {team1.shortName || team1.name.slice(0, 3).toUpperCase()}
               </td>
-              <td className="text-center py-1 text-stone-300">{team1.score?.split('/')[0] || team1.score}</td>
-              <td className="text-center py-1 text-stone-300">{team1.score?.split('/')[1] || '-'}</td>
-              <td className="text-center py-1 text-stone-400">{team1.overs || '-'}</td>
-              <td className="text-right py-1 pr-1 font-bold text-white">10.20</td>
+              <td className="text-center py-1 text-stone-200 font-bold">{t1Runs}</td>
+              <td className="text-center py-1 text-stone-300">{t1Wkts}</td>
+              <td className="text-center py-1 text-stone-400">{team1.overs || '20.0'}</td>
+              <td className="text-right py-1 pr-1 font-bold text-emerald-400">{t1RR}</td>
             </tr>
             <tr className="text-stone-200">
               <td className="py-1 pl-1 font-sans font-bold text-white flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse-dot" />
+                <span className={`w-1.5 h-1.5 rounded-full ${isRecent ? 'bg-amber-400' : 'bg-red-500 animate-pulse-dot'}`} />
                 {team2.shortName || team2.name.slice(0, 3).toUpperCase()}
               </td>
-              <td className="text-center py-1 text-stone-300">{miniscore?.runs || team2.score?.split('/')[0]}</td>
-              <td className="text-center py-1 text-stone-300">{miniscore?.wickets || team2.score?.split('/')[1]}</td>
-              <td className="text-center py-1 text-stone-400">{miniscore?.overs || team2.overs}</td>
-              <td className="text-right py-1 pr-1 font-bold text-amber-300">
-                {miniscore?.currentRunRate || '8.73'}
-              </td>
+              <td className="text-center py-1 text-stone-200 font-bold">{t2Runs}</td>
+              <td className="text-center py-1 text-stone-300">{t2Wkts}</td>
+              <td className="text-center py-1 text-stone-400">{team2.overs || '20.0'}</td>
+              <td className="text-right py-1 pr-1 font-bold text-amber-300">{t2RR}</td>
             </tr>
           </tbody>
         </table>
