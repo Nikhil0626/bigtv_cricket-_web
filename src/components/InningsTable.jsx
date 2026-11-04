@@ -64,17 +64,17 @@ export default function InningsTable({ match }) {
     );
   }
 
-  // Parse T20 runs / wickets
-  const t1Runs = team1.score?.split('/')[0] || '188';
-  const t1Wkts = team1.score?.split('/')[1] || '6';
-  const t2Runs = team2.score?.split('/')[0] || (miniscore?.runs || '170');
-  const t2Wkts = team2.score?.split('/')[1] || (miniscore?.wickets || '9');
+  // Parse runs / wickets
+  const t1Runs = team1.score?.split('/')[0] || '185';
+  const t1Wkts = team1.score?.split('/')[1] || '10';
+  const t2Runs = miniscore?.runs ?? (team2.score?.split('/')[0] || '116');
+  const t2Wkts = miniscore?.wickets ?? (team2.score?.split('/')[1] || '2');
 
   // Compute Run Rates
-  const t1OversNum = parseFloat(team1.overs) || 20.0;
-  const t2OversNum = parseFloat(miniscore?.overs || team2.overs) || 20.0;
+  const t1OversNum = parseFloat(team1.overs) || 40.2;
   const t1RR = (parseFloat(t1Runs) / t1OversNum).toFixed(2);
-  const t2RR = (parseFloat(t2Runs) / t2OversNum).toFixed(2);
+  const t2RR = miniscore?.currentRunRate ? Number(miniscore.currentRunRate).toFixed(2) : '6.21';
+  const t2Overs = miniscore?.overs || team2.overs || '18.4';
 
   // Limited overs (T20 / ODI)
   return (
@@ -108,7 +108,7 @@ export default function InningsTable({ match }) {
               </td>
               <td className="text-center py-1 text-stone-200 font-bold">{t2Runs}</td>
               <td className="text-center py-1 text-stone-300">{t2Wkts}</td>
-              <td className="text-center py-1 text-stone-400">{team2.overs || '20.0'}</td>
+              <td className="text-center py-1 text-stone-400">{t2Overs}</td>
               <td className="text-right py-1 pr-1 font-bold text-amber-300">{t2RR}</td>
             </tr>
           </tbody>

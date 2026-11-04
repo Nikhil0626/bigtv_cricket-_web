@@ -18,20 +18,21 @@ export default function ScoreHero({ match }) {
   const isFinal = isRecent || (state || '').toLowerCase() === 'recent';
   const t1Score = team1.score || '0/0';
   const t2Score = team2.score || '0/0';
-  const centerStatus = isFinal 
-    ? 'FINAL' 
-    : miniscore?.overs 
-      ? `${miniscore.overs} ov` 
-      : team2.overs 
-        ? `${team2.overs} ov` 
-        : 'Live';
+
+  const currentOvers = miniscore?.overs 
+    ? `${miniscore.overs} ov` 
+    : team2.overs 
+      ? `${team2.overs} ov` 
+      : 'Live';
+
+  const centerStatus = isFinal ? 'FINAL' : currentOvers;
 
   return (
     <div className="w-full pt-1 pb-1 px-3 flex flex-col items-center flex-shrink-0">
-      {/* Category Tag (e.g. CRICKET • T20 / Series Name) */}
+      {/* Category Tag (e.g. ODI • 1ST ODI / Series Name) */}
       <div className="flex items-center gap-1.5 text-[10px] font-semibold tracking-widest uppercase text-stone-400 mb-0.5">
         <span className={isFinal ? "text-amber-400 font-bold" : "text-red-400 font-bold"}>
-          {matchFormat || 'T20'}
+          {matchFormat || 'ODI'}
         </span>
         <span>•</span>
         <span className="truncate max-w-[200px] text-stone-300">{matchDesc || seriesName}</span>
@@ -39,7 +40,7 @@ export default function ScoreHero({ match }) {
 
       {/* Main Big Scoreboard Row */}
       <div className="w-full flex items-baseline justify-between px-3">
-        {/* Team 1 Score (Left - India) */}
+        {/* Team 1 Score (Left - e.g. New Zealand 185/10) */}
         <div className="flex-1 flex flex-col items-center text-center">
           <div className="text-3xl sm:text-4xl font-black tracking-tight text-white font-mono leading-none drop-shadow-sm">
             {t1Score.includes('&') ? (
@@ -73,14 +74,19 @@ export default function ScoreHero({ match }) {
           }`}>
             {centerStatus}
           </span>
-          {match.status && isFinal && (
+          {!isFinal && miniscore?.target && (
+            <span className="text-[9px] font-medium text-amber-300/90 mt-0.5">
+              Target {miniscore.target}
+            </span>
+          )}
+          {isFinal && match.status && (
             <span className="text-[9px] font-medium text-emerald-400 mt-0.5 max-w-[120px] truncate text-center">
               {match.status}
             </span>
           )}
         </div>
 
-        {/* Team 2 Score (Right - Australia) */}
+        {/* Team 2 Score (Right - e.g. India 116/2) */}
         <div className="flex-1 flex flex-col items-center text-center">
           <div className="text-3xl sm:text-4xl font-black tracking-tight text-white font-mono leading-none drop-shadow-sm">
             {t2Score}
@@ -91,7 +97,7 @@ export default function ScoreHero({ match }) {
 
       {/* Team Logos & Labels */}
       <div className="w-full grid grid-cols-2 gap-2 mt-1 px-2">
-        {/* Team 1 Info (India) */}
+        {/* Team 1 Info */}
         <div className="flex flex-col items-center text-center">
           <TeamLogo shortName={team1.shortName} name={team1.name} size={36} className="mb-0.5" />
           <h2 className="text-xs font-bold text-white tracking-tight leading-none truncate max-w-[130px]">
@@ -102,7 +108,7 @@ export default function ScoreHero({ match }) {
           </span>
         </div>
 
-        {/* Team 2 Info (Australia) */}
+        {/* Team 2 Info */}
         <div className="flex flex-col items-center text-center">
           <TeamLogo shortName={team2.shortName} name={team2.name} size={36} className="mb-0.5" />
           <h2 className="text-xs font-bold text-white tracking-tight leading-none truncate max-w-[130px]">

@@ -3,72 +3,131 @@ import React, { useState } from 'react';
 export default function PlayByPlayTab({ match }) {
   const [filter, setFilter] = useState('all');
 
-  const commentaryList = [
-    {
-      over: '19.6',
-      bowler: 'Jasprit Bumrah',
-      batter: 'Mitchell Starc',
-      runs: 'W',
-      type: 'wicket',
-      text: 'OUT! CLEAN BOWLED! Bumrah finishes in supreme style! 142kph toe-crusher rips out middle stump! India seal an 18-run victory at the SCG!'
-    },
-    {
-      over: '19.5',
-      bowler: 'Jasprit Bumrah',
-      batter: 'Adam Zampa',
-      runs: 1,
-      type: 'single',
-      text: 'Pinpoint yorker on leg stump, jammed out into the off-side for a single.'
-    },
-    {
-      over: '19.4',
-      bowler: 'Jasprit Bumrah',
-      batter: 'Tim David',
-      runs: 'W',
-      type: 'wicket',
-      text: 'OUT! CAUGHT AT LONG-ON! Slower cutter into the deck, David tries to clear the ropes, mistimes it straight down Hardik Pandya throat!'
-    },
-    {
-      over: '19.3',
-      bowler: 'Jasprit Bumrah',
-      batter: 'Tim David',
-      runs: 2,
-      type: 'runs',
-      text: 'Full and angled into the pads, flicked wide of long-on for a hurried couple.'
-    },
-    {
-      over: '19.2',
-      bowler: 'Jasprit Bumrah',
-      batter: 'Tim David',
-      runs: 0,
-      type: 'dot',
-      text: 'Dot ball! Perfect blockhole yorker, David cannot get underneath it!'
-    },
-    {
-      over: '18.6',
-      bowler: 'Arshdeep Singh',
-      batter: 'Mitchell Marsh',
-      runs: 'W',
-      type: 'wicket',
-      text: 'OUT! CAUGHT! Crucial wicket! Marsh looks to launch over extra cover, slice flies to Virat Kohli who takes a tumbling catch!'
-    },
-    {
-      over: '18.5',
-      bowler: 'Arshdeep Singh',
-      batter: 'Mitchell Marsh',
-      runs: 6,
-      type: 'six',
-      text: 'SIX! Crunched into the SCG stands! Marsh deposits the slot ball 89 meters over long-on!'
-    },
+  // Baseline commentary for India Tour of New Zealand 1st ODI
+  const defaultCommentary = [
     {
       over: '18.4',
-      bowler: 'Arshdeep Singh',
-      batter: 'Tim David',
+      bowler: 'Nathan Smith',
+      batter: 'Shreyas Iyer',
+      runs: 2,
+      type: 'runs',
+      text: 'Nathan Smith to Shreyas Iyer, 2 runs, fullish around off, Shreyas Iyer inner halves it to deep backward square leg for a couple of runs.'
+    },
+    {
+      over: '18.3',
+      bowler: 'Nathan Smith',
+      batter: 'Shreyas Iyer',
+      runs: 0,
+      type: 'dot',
+      text: 'Good length delivery on off stump, defended forward solidly towards mid-off.'
+    },
+    {
+      over: '18.2',
+      bowler: 'Nathan Smith',
+      batter: 'Shubman Gill',
+      runs: 'W',
+      type: 'wicket',
+      text: 'OUT! Shubman Gill c Tom Latham b Nathan Smith 37(56) - 114/2! Slower ball outside off, Gill tries to cut over the infield, edges behind to Latham!'
+    },
+    {
+      over: '18.1',
+      bowler: 'Nathan Smith',
+      batter: 'Shubman Gill',
+      runs: 0,
+      type: 'dot',
+      text: 'Back of a length angling into off stump, dabbed to backward point.'
+    },
+    {
+      over: '17.6',
+      bowler: 'Jacob Duffy',
+      batter: 'Virat Kohli',
       runs: 1,
       type: 'single',
-      text: 'Full toss pushed down to mid-off for one.'
+      text: 'Fuller outside off, Kohli pushes with soft hands through covers for an easy single.'
+    },
+    {
+      over: '17.5',
+      bowler: 'Jacob Duffy',
+      batter: 'Virat Kohli',
+      runs: 4,
+      type: 'four',
+      text: 'FOUR! Glorious cover drive! Kohli leans into the half-volley and creams it through extra cover for a boundary!'
+    },
+    {
+      over: '17.4',
+      bowler: 'Jacob Duffy',
+      batter: 'Virat Kohli',
+      runs: 2,
+      type: 'runs',
+      text: 'Whipped off the hips through square leg, sharp running between wickets for two.'
+    },
+    {
+      over: '17.3',
+      bowler: 'Jacob Duffy',
+      batter: 'Virat Kohli',
+      runs: 0,
+      type: 'dot',
+      text: 'Beaten outside off! Nip back off the seam, Kohli leaves it alone on length.'
     }
   ];
+
+  // Parse comwrapper from match if available
+  let commentaryList = defaultCommentary;
+  if (match?.comwrapper && Array.isArray(match.comwrapper) && match.comwrapper.length > 0) {
+    const apiCommentary = match.comwrapper.map((item) => {
+      const comm = item.commentary || item;
+      const text = comm.commtxt || '';
+      let type = 'single';
+      let runs = 1;
+
+      if (text.toLowerCase().includes('out') || text.toLowerCase().includes('wicket') || comm.eventtype === 'WICKET') {
+        type = 'wicket';
+        runs = 'W';
+      } else if (text.toLowerCase().includes('six') || text.toLowerCase().includes('6 runs')) {
+        type = 'six';
+        runs = 6;
+      } else if (text.toLowerCase().includes('four') || text.toLowerCase().includes('4 runs')) {
+        type = 'four';
+        runs = 4;
+      } else if (text.toLowerCase().includes('2 runs') || text.toLowerCase().includes('couple')) {
+        type = 'runs';
+        runs = 2;
+      } else if (text.toLowerCase().includes('no run') || text.toLowerCase().includes('dot ball')) {
+        type = 'dot';
+        runs = 0;
+      }
+
+      // Try to parse bowler and batter from text "Bowler to Batter, ..."
+      let bowler = 'Nathan Smith';
+      let batter = 'Shreyas Iyer';
+      const parts = text.split(',');
+      if (parts[0] && parts[0].includes(' to ')) {
+        const names = parts[0].split(' to ');
+        bowler = names[0].trim();
+        batter = names[1]?.trim() || batter;
+      }
+
+      return {
+        over: comm.overnum ? String(comm.overnum) : '18.4',
+        bowler,
+        batter,
+        runs,
+        type,
+        text
+      };
+    });
+
+    if (apiCommentary.length > 0) {
+      // Merge apiCommentary with default list if API only returns 1 ball
+      const combined = [...apiCommentary];
+      defaultCommentary.forEach(d => {
+        if (!combined.some(c => c.over === d.over)) {
+          combined.push(d);
+        }
+      });
+      commentaryList = combined;
+    }
+  }
 
   const filtered = commentaryList.filter(item => {
     if (filter === 'wickets') return item.type === 'wicket';
@@ -82,7 +141,7 @@ export default function PlayByPlayTab({ match }) {
       <div className="flex items-center gap-1.5 pb-1 border-b border-white/10 flex-shrink-0">
         {[
           { id: 'all', label: 'All Balls' },
-          { id: 'boundaries', label: 'Boundaries (6s)' },
+          { id: 'boundaries', label: 'Boundaries (4s & 6s)' },
           { id: 'wickets', label: 'Wickets 🔴' },
         ].map(chip => (
           <button
@@ -106,6 +165,7 @@ export default function PlayByPlayTab({ match }) {
           if (item.type === 'wicket') badgeBg = 'bg-red-600 text-white font-extrabold border-red-400 shadow-[0_0_6px_rgba(239,68,68,0.7)]';
           if (item.type === 'six') badgeBg = 'bg-purple-600 text-white font-extrabold border-purple-400 shadow-[0_0_6px_rgba(168,85,247,0.7)]';
           if (item.type === 'four') badgeBg = 'bg-emerald-600 text-white font-extrabold border-emerald-400';
+          if (item.type === 'runs') badgeBg = 'bg-sky-700/80 text-sky-100 font-bold border-sky-500/50';
 
           return (
             <div
