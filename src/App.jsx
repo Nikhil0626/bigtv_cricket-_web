@@ -46,19 +46,21 @@ export default function App() {
     setLoading(true);
     setErrorMessage(null);
     try {
+      // Step A: Hit the Recent Matches API
       const recentRes = await getRecentMatches();
       const fetchedMatches = recentRes.matches || [];
       setMatches(fetchedMatches);
 
       if (fetchedMatches.length > 0) {
-        // Send the first ID in the recent matches list as input
-        const firstMatchId = fetchedMatches[0].matchId || '1000';
-        setSelectedMatchId(firstMatchId);
+        // Step B: Explicitly extract the matchId key from the recent matches API
+        const firstMatch = fetchedMatches[0];
+        const matchIdKey = String(firstMatch.matchId || "1000");
+        setSelectedMatchId(matchIdKey);
         
-        // 2. Fetch Match Live Score API for the first match (ID 1000)
+        // Step C: Fetch detailed score data using the extracted matchId key
         // curl -X 'GET' 'https://api.pravasamedia.com/api/v1/cricket/matches/{matchId}/livescore'
-        const scoreRes = await getMatchLiveScore(firstMatchId);
-        const normalized = normalizeMatch(fetchedMatches[0], scoreRes.scoreData);
+        const scoreRes = await getMatchLiveScore(matchIdKey);
+        const normalized = normalizeMatch(firstMatch, scoreRes.scoreData);
         setCurrentMatch(normalized);
         setSecondsLeft(FIVE_MINUTES_SECONDS);
         updateLastSyncedTime();
@@ -75,14 +77,15 @@ export default function App() {
     loadInitialData();
   }, []);
 
-  // 3. Switch match handler
-  const handleSelectMatch = async (matchId) => {
-    setSelectedMatchId(matchId);
+  // 3. Switch match handler using matchId key
+  const handleSelectMatch = async (matchIdKey) => {
+    const targetMatchId = String(matchIdKey);
+    setSelectedMatchId(targetMatchId);
     setShowMatchPicker(false);
     setRefreshing(true);
     try {
-      const matchOverview = matches.find(m => String(m.matchId) === String(matchId));
-      const scoreRes = await getMatchLiveScore(matchId);
+      const matchOverview = matches.find(m => String(m.matchId) === targetMatchId);
+      const scoreRes = await getMatchLiveScore(targetMatchId);
       const normalized = normalizeMatch(matchOverview, scoreRes.scoreData);
       setCurrentMatch(normalized);
       setSecondsLeft(FIVE_MINUTES_SECONDS);
@@ -94,21 +97,21 @@ export default function App() {
     }
   };
 
-  // 4. Refresh current match live score
+  // 4. Refresh current match live score using matchId key
   const handleRefresh = useCallback(async () => {
-    const matchId = selectedMatchIdRef.current;
-    if (!matchId) return;
+    const matchIdKey = selectedMatchIdRef.current;
+    if (!matchIdKey) return;
 
     setRefreshing(true);
     try {
       const [recentRes, scoreRes] = await Promise.all([
         getRecentMatches(),
-        getMatchLiveScore(matchId)
+        getMatchLiveScore(matchIdKey)
       ]);
       if (recentRes.matches) {
         setMatches(recentRes.matches);
       }
-      const matchOverview = recentRes.matches?.find(m => String(m.matchId) === String(matchId));
+      const matchOverview = recentRes.matches?.find(m => String(m.matchId) === String(matchIdKey));
       const normalized = normalizeMatch(matchOverview, scoreRes.scoreData);
       setCurrentMatch(normalized);
       setSecondsLeft(FIVE_MINUTES_SECONDS);
@@ -177,7 +180,7 @@ export default function App() {
             </div>
           )}
 
-          {/* Center Title: "Today" with match switch dropdown */}
+          {/* Center Title: "Recent Matches" with match switch dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowMatchPicker(!showMatchPicker)}
@@ -228,7 +231,7 @@ export default function App() {
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <div className="w-10 h-10 rounded-full border-2 border-red-500/30 border-t-red-500 animate-spin mb-3" />
             <p className="text-xs font-semibold text-stone-200">Loading Cricket Scorecard...</p>
-            <p className="text-[10px] text-stone-400 mt-0.5">Fetching from pravasamedia API</p>
+            <p className="text-[10px] text-stone-400 mt-0.5">Fetching matchId {selectedMatchId || '...'} from pravasamedia API</p>
           </div>
         )}
 

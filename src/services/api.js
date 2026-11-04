@@ -5,7 +5,7 @@
 
 const BASE_URL = 'https://api.pravasamedia.com/api/v1/cricket';
 
-// High-fidelity fallback data in case of network interruption
+// High-fidelity fallback data matching the recent matches API response
 export const FALLBACK_RECENT_MATCHES = [
   {
     id: "911a4c79-5848-4592-9c31-0aa3f0c99fe7",
@@ -68,7 +68,7 @@ export async function getRecentMatches() {
 }
 
 /**
- * Hits the Live Score API for a specific match:
+ * Hits the Live Score API using the matchId key:
  * GET https://api.pravasamedia.com/api/v1/cricket/matches/{matchId}/livescore
  */
 export async function getMatchLiveScore(matchId) {
@@ -85,58 +85,64 @@ export async function getMatchLiveScore(matchId) {
     if (data?.data) {
       return { scoreData: data.data, raw: data, isFallback: false };
     }
-    const found = FALLBACK_RECENT_MATCHES.find(m => m.matchId === String(matchId));
+    const found = FALLBACK_RECENT_MATCHES.find(m => String(m.matchId) === String(matchId));
     return { scoreData: found || FALLBACK_RECENT_MATCHES[0], raw: null, isFallback: true };
   } catch (err) {
     console.warn(`getMatchLiveScore(${matchId}) failed, using fallback:`, err);
-    const found = FALLBACK_RECENT_MATCHES.find(m => m.matchId === String(matchId));
+    const found = FALLBACK_RECENT_MATCHES.find(m => String(m.matchId) === String(matchId));
     return { scoreData: found || FALLBACK_RECENT_MATCHES[0], raw: null, isFallback: true, error: err.message };
   }
 }
 
 /**
- * Normalizes recent match overview and livescore detail into a consistent model
+ * Explicitly normalizes data by taking the matchId key from recent matches API
+ * and combining with the match livescore response.
  */
 export function normalizeMatch(matchOverview, liveDetail) {
-  const m = liveDetail || matchOverview;
-  if (!m) return null;
+  if (!matchOverview && !liveDetail) return null;
 
-  // Extract team 1 (India)
+  const overview = matchOverview || {};
+  const detail = liveDetail || {};
+
+  // Take the matchId key explicitly
+  const matchId = String(overview.matchId || detail.matchId || "1000");
+
+  // Extract Team 1 data (India)
   const team1 = {
-    id: m.team1?.id || m.team1Id || "2",
-    name: m.team1?.name || m.team1Name || "India",
-    shortName: m.team1?.shortName || m.team1ShortName || "IND",
-    score: m.team1?.score || m.team1Score || "188/6",
-    overs: m.team1?.overs || m.team1Overs || "20.0"
+    id: String(detail.team1?.id || overview.team1Id || "2"),
+    name: detail.team1?.name || overview.team1Name || "India",
+    shortName: detail.team1?.shortName || overview.team1ShortName || "IND",
+    score: detail.team1?.score || overview.team1Score || "188/6",
+    overs: detail.team1?.overs || overview.team1Overs || "20.0"
   };
 
-  // Extract team 2 (Australia)
+  // Extract Team 2 data (Australia)
   const team2 = {
-    id: m.team2?.id || m.team2Id || "3",
-    name: m.team2?.name || m.team2Name || "Australia",
-    shortName: m.team2?.shortName || m.team2ShortName || "AUS",
-    score: m.team2?.score || m.team2Score || "170/9",
-    overs: m.team2?.overs || m.team2Overs || "20.0"
+    id: String(detail.team2?.id || overview.team2Id || "3"),
+    name: detail.team2?.name || overview.team2Name || "Australia",
+    shortName: detail.team2?.shortName || overview.team2ShortName || "AUS",
+    score: detail.team2?.score || overview.team2Score || "170/9",
+    overs: detail.team2?.overs || overview.team2Overs || "20.0"
   };
 
-  const livePayload = m.liveScorePayload || matchOverview?.liveScorePayload || null;
+  const livePayload = detail.liveScorePayload || overview.liveScorePayload || null;
   const miniscore = livePayload?.miniscore || null;
-
-  const isRecent = (m.state || matchOverview?.state || '').toLowerCase() === 'recent' || !livePayload;
+  const state = String(detail.state || overview.state || "recent").toLowerCase();
+  const isRecent = state === 'recent' || !livePayload;
 
   return {
-    matchId: String(m.matchId || matchOverview?.matchId || "1000"),
-    seriesName: m.seriesName || matchOverview?.seriesName || "India Tour of Australia, 2026",
-    matchDesc: m.matchDesc || matchOverview?.matchDesc || "2nd T20I",
-    matchFormat: m.matchFormat || matchOverview?.matchFormat || "T20",
-    state: m.state || matchOverview?.state || (isRecent ? "recent" : "live"),
-    status: m.status || matchOverview?.status || "India won by 18 runs",
-    venue: m.venue || matchOverview?.venue || "Sydney Cricket Ground",
-    city: m.city || matchOverview?.city || "Sydney",
-    startTime: m.startTime || matchOverview?.startTime || "2026-10-27T07:26:14.676Z",
-    currentInnings: m.currentInnings || matchOverview?.currentInnings || (isRecent ? 2 : 1),
-    currentBattingTeam: m.currentBattingTeam || matchOverview?.currentBattingTeam || null,
-    lastSyncedAt: m.lastSyncedAt || matchOverview?.lastSyncedAt || new Date().toISOString(),
+    matchId, // matchId key
+    seriesName: detail.seriesName || overview.seriesName || "India Tour of Australia, 2026",
+    matchDesc: detail.matchDesc || overview.matchDesc || "2nd T20I",
+    matchFormat: overview.matchFormat || detail.matchFormat || "T20",
+    state: isRecent ? "recent" : "live",
+    status: detail.status || overview.status || "India won by 18 runs",
+    venue: detail.venue || overview.venue || "Sydney Cricket Ground",
+    city: detail.city || overview.city || "Sydney",
+    startTime: detail.startTime || overview.startTime || "2026-10-27T07:26:14.676Z",
+    currentInnings: detail.currentInnings || overview.currentInnings || (isRecent ? 2 : 1),
+    currentBattingTeam: detail.currentBattingTeam || overview.currentBattingTeam || null,
+    lastSyncedAt: detail.lastSyncedAt || overview.lastSyncedAt || new Date().toISOString(),
     team1,
     team2,
     liveScorePayload,
