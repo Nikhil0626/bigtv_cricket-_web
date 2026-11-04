@@ -31,7 +31,9 @@ export default function App() {
   const [showMatchPicker, setShowMatchPicker] = useState(false);
 
   const selectedMatchIdRef = useRef(selectedMatchId);
-  selectedMatchIdRef.current = selectedMatchId;
+  useEffect(() => {
+    selectedMatchIdRef.current = selectedMatchId;
+  }, [selectedMatchId]);
 
   // Format time helper
   const updateLastSyncedTime = () => {

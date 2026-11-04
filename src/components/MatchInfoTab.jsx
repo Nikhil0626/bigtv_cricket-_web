@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Calendar, Trophy, Users, ShieldAlert, Award } from 'lucide-react';
+import { MapPin, Calendar, Trophy, Award } from 'lucide-react';
 
 export default function MatchInfoTab({ match }) {
   if (!match) return null;

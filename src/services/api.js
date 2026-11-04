@@ -145,7 +145,7 @@ export function normalizeMatch(matchOverview, liveDetail) {
     lastSyncedAt: detail.lastSyncedAt || overview.lastSyncedAt || new Date().toISOString(),
     team1,
     team2,
-    liveScorePayload,
+    liveScorePayload: livePayload, // Fixed: explicitly assign livePayload
     miniscore,
     isRecent
   };

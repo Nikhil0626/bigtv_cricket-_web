@@ -44,9 +44,6 @@ export default function LiveStatsCard({ match }) {
   // Calculate run rates
   const currentRR = miniscore?.currentRunRate || 9.40;
   const requiredRR = miniscore?.requiredRunRate || 8.50;
-  const runs = miniscore?.runs || 188;
-  const target = miniscore?.target || 170;
-  const runsNeeded = isMatchCompleted ? 18 : Math.max(0, target - runs);
 
   // Recent overs tokens
   const recentStats = miniscore?.recentOversStats || "0 1 W 2 1 W | 4 1 0 1 2 W";
