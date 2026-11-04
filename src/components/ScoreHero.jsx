@@ -15,7 +15,11 @@ export default function ScoreHero({ match }) {
     state
   } = match;
 
-  const isFinal = isRecent || (state || '').toLowerCase() === 'recent';
+  const isWon = (match.status || '').toLowerCase().includes('won by') || 
+                (match.status || '').toLowerCase().includes('beat') || 
+                (match.status || '').toLowerCase().includes('match drawn') || 
+                (match.status || '').toLowerCase().includes('match tied');
+  const isFinal = isRecent || (state || '').toLowerCase() === 'recent' || isWon;
   const t1Score = team1.score || '0/0';
   const t2Score = team2.score || '0/0';
 

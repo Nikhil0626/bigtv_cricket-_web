@@ -65,16 +65,19 @@ export default function InningsTable({ match }) {
   }
 
   // Parse runs / wickets
-  const t1Runs = team1.score?.split('/')[0] || '185';
-  const t1Wkts = team1.score?.split('/')[1] || '10';
-  const t2Runs = miniscore?.runs ?? (team2.score?.split('/')[0] || '116');
-  const t2Wkts = miniscore?.wickets ?? (team2.score?.split('/')[1] || '2');
+  const t1Runs = team1.score?.split('/')[0] || '-';
+  const t1Wkts = team1.score?.split('/')[1] || '-';
+  const t2Runs = miniscore?.runs ?? (team2.score?.split('/')[0] || '-');
+  const t2Wkts = miniscore?.wickets ?? (team2.score?.split('/')[1] || '-');
 
   // Compute Run Rates
-  const t1OversNum = parseFloat(team1.overs) || 40.2;
-  const t1RR = (parseFloat(t1Runs) / t1OversNum).toFixed(2);
-  const t2RR = miniscore?.currentRunRate ? Number(miniscore.currentRunRate).toFixed(2) : '6.21';
-  const t2Overs = miniscore?.overs || team2.overs || '18.4';
+  const t1OversNum = parseFloat(team1.overs) || 50.0;
+  const t1RR = t1Runs !== '-' && t1OversNum > 0 ? (parseFloat(t1Runs) / t1OversNum).toFixed(2) : '-';
+  const t2Overs = miniscore?.overs || team2.overs || '-';
+  const t2OversNum = parseFloat(t2Overs) || 50.0;
+  const t2RR = miniscore?.currentRunRate 
+    ? Number(miniscore.currentRunRate).toFixed(2) 
+    : (t2Runs !== '-' && t2OversNum > 0 ? (parseFloat(t2Runs) / t2OversNum).toFixed(2) : '-');
 
   // Limited overs (T20 / ODI)
   return (

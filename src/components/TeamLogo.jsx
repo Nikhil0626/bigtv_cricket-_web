@@ -6,47 +6,59 @@ import React from 'react';
 export default function TeamLogo({ shortName = '', name = '', size = 52, className = '' }) {
   const code = (shortName || name || '').toUpperCase().trim();
 
-  // UAE (United Arab Emirates)
-  if (code.includes('UAE') || code.includes('EMIRATES')) {
-    return (
-      <div 
-        style={{ width: size, height: size }}
-        className={`relative rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-gradient-to-br from-[#00732f] via-[#111111] to-[#ff0000] p-1 border border-emerald-400/40 ${className}`}
-      >
-        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
-          <circle cx="50" cy="50" r="46" fill="#0f172a" stroke="#00732f" strokeWidth="4" />
-          <rect x="20" y="24" width="60" height="17" fill="#00732f" rx="3" />
-          <rect x="20" y="41" width="60" height="18" fill="#ffffff" />
-          <rect x="20" y="59" width="60" height="17" fill="#000000" rx="3" />
-          <rect x="18" y="24" width="18" height="52" fill="#ff0000" rx="3" />
-          <circle cx="50" cy="50" r="16" fill="#0f172a" stroke="#ffffff" strokeWidth="2" />
-          <text x="50" y="55" textAnchor="middle" fill="#ffffff" fontSize="11" fontWeight="900" fontFamily="sans-serif">UAE</text>
-        </svg>
-      </div>
-    );
-  }
-
-  // OMAN
-  if (code.includes('OMA') || code.includes('OMAN')) {
-    return (
-      <div 
-        style={{ width: size, height: size }}
-        className={`relative rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-gradient-to-br from-[#c8102e] via-[#008000] to-[#111111] p-1 border border-red-400/40 ${className}`}
-      >
-        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
-          <circle cx="50" cy="50" r="46" fill="#0f172a" stroke="#c8102e" strokeWidth="4" />
-          <rect x="20" y="24" width="60" height="17" fill="#ffffff" rx="3" />
-          <rect x="20" y="41" width="60" height="18" fill="#c8102e" />
-          <rect x="20" y="59" width="60" height="17" fill="#008000" rx="3" />
-          <rect x="18" y="24" width="18" height="52" fill="#c8102e" rx="3" />
-          <circle cx="50" cy="50" r="16" fill="#0f172a" stroke="#ffffff" strokeWidth="2" />
-          <text x="50" y="55" textAnchor="middle" fill="#ffffff" fontSize="10" fontWeight="900" fontFamily="sans-serif">OMA</text>
-        </svg>
-      </div>
-    );
-  }
-
   // Color schemes and badge styles per team
+  if (code.includes('UAE') || code.includes('UNITED ARAB EMIRATES')) {
+    return (
+      <div 
+        style={{ width: size, height: size }}
+        className={`relative rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-gradient-to-br from-[#1a1a1a] via-[#2a2a2a] to-[#111111] p-1 border border-stone-400/40 ${className}`}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+          <defs>
+            <clipPath id="uaeClip">
+              <circle cx="50" cy="50" r="45" />
+            </clipPath>
+          </defs>
+          <circle cx="50" cy="50" r="46" fill="#111111" stroke="#FFFFFF" strokeWidth="2.5" />
+          <g clipPath="url(#uaeClip)">
+            <rect x="0" y="0" width="100" height="33.3" fill="#00843D" />
+            <rect x="0" y="33.3" width="100" height="33.3" fill="#FFFFFF" />
+            <rect x="0" y="66.6" width="100" height="33.3" fill="#000000" />
+            <rect x="0" y="0" width="30" height="100" fill="#E41B13" />
+          </g>
+          <circle cx="50" cy="50" r="22" fill="#0c0c0c" stroke="#E41B13" strokeWidth="2" />
+          <text x="50" y="55" textAnchor="middle" fill="#FFFFFF" fontSize="12" fontWeight="900" fontFamily="sans-serif">UAE</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (code.includes('OMAN') || code.includes('OMA')) {
+    return (
+      <div 
+        style={{ width: size, height: size }}
+        className={`relative rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-gradient-to-br from-[#1a1a1a] via-[#2a2a2a] to-[#111111] p-1 border border-red-500/40 ${className}`}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+          <defs>
+            <clipPath id="omanClip">
+              <circle cx="50" cy="50" r="45" />
+            </clipPath>
+          </defs>
+          <circle cx="50" cy="50" r="46" fill="#111111" stroke="#FFFFFF" strokeWidth="2.5" />
+          <g clipPath="url(#omanClip)">
+            <rect x="0" y="0" width="100" height="33.3" fill="#FFFFFF" />
+            <rect x="0" y="33.3" width="100" height="33.3" fill="#D81E05" />
+            <rect x="0" y="66.6" width="100" height="33.3" fill="#008000" />
+            <rect x="0" y="0" width="30" height="100" fill="#D81E05" />
+          </g>
+          <circle cx="50" cy="50" r="22" fill="#0c0c0c" stroke="#D81E05" strokeWidth="2" />
+          <text x="50" y="55" textAnchor="middle" fill="#FFFFFF" fontSize="10" fontWeight="900" fontFamily="sans-serif">OMAN</text>
+        </svg>
+      </div>
+    );
+  }
+
   if (code.includes('NZ') || code.includes('NEW ZEALAND')) {
     return (
       <div 

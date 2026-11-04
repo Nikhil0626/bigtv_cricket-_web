@@ -3,16 +3,78 @@ import React, { useState } from 'react';
 export default function PlayByPlayTab({ match }) {
   const [filter, setFilter] = useState('all');
 
-  // Baseline commentary for India Tour of New Zealand 1st ODI
-  const defaultCommentary = [
+  const isOmanMatch = match?.team1?.shortName === 'UAE' || match?.team2?.shortName === 'OMAN';
+
+  // Baseline commentary for UAE vs Oman 145th ODI
+  const omanCommentary = [
     {
-      over: '22.4',
-      bowler: 'Nathan Smith',
-      batter: 'Naman Dhir',
+      over: '41.6',
+      bowler: 'Ali Naseer',
+      batter: 'Naseem Khushi',
+      runs: 0,
+      type: 'dot',
+      text: 'Ali Naseer to Naseem Khushi, no run, tight length delivery on middle, dabbed to point. Dot to finish the 42nd over.'
+    },
+    {
+      over: '41.5',
+      bowler: 'Ali Naseer',
+      batter: 'Naseem Khushi',
       runs: 4,
       type: 'four',
-      text: 'Nathan Smith to Naman Dhir, FOUR, no half-measures this time as Naman Dhir pulls emphatically through mid-wicket to finish the job. India win by 5 wickets and go 1-0 up in the series.'
+      text: 'FOUR! Slower delivery outside off, Khushi reaches out and slashes it over backward point for a much-needed boundary!'
     },
+    {
+      over: '41.4',
+      bowler: 'Ali Naseer',
+      batter: 'Mehran Khan',
+      runs: 1,
+      type: 'single',
+      text: 'Fuller on off stump, Mehran pushes down to long-off for a single.'
+    },
+    {
+      over: '41.3',
+      bowler: 'Ali Naseer',
+      batter: 'Mehran Khan',
+      runs: 0,
+      type: 'dot',
+      text: 'Beaten! Cutter pitched on off and moving away, Mehran plays and misses.'
+    },
+    {
+      over: '41.2',
+      bowler: 'Ali Naseer',
+      batter: 'Naseem Khushi',
+      runs: 1,
+      type: 'single',
+      text: 'Length ball on the pads, nudged into the square leg pocket for a brisk single.'
+    },
+    {
+      over: '41.1',
+      bowler: 'Ali Naseer',
+      batter: 'Mehran Khan',
+      runs: 1,
+      type: 'single',
+      text: 'Full on middle, drilled down the ground to long-on.'
+    },
+    {
+      over: '40.6',
+      bowler: 'Junaid Siddique',
+      batter: 'Ayaan Khan',
+      runs: 'W',
+      type: 'wicket',
+      text: 'OUT! CAUGHT! Ayaan Khan c Muhammad Waseem b Junaid Siddique 24(38) - 124/7! Big blow for Oman as Junaid strikes with a fierce bumper!'
+    },
+    {
+      over: '40.5',
+      bowler: 'Junaid Siddique',
+      batter: 'Ayaan Khan',
+      runs: 0,
+      type: 'dot',
+      text: 'Fast yorker right on the toe, jammed out in the nick of time.'
+    }
+  ];
+
+  // Baseline commentary for India Tour of New Zealand 1st ODI
+  const nzCommentary = [
     {
       over: '18.4',
       bowler: 'Nathan Smith',
@@ -63,36 +125,37 @@ export default function PlayByPlayTab({ match }) {
     }
   ];
 
+  const defaultCommentary = isOmanMatch ? omanCommentary : nzCommentary;
+
   // Parse comwrapper from match if available
-  let commentaryList = [];
+  let commentaryList = defaultCommentary;
   if (match?.comwrapper && Array.isArray(match.comwrapper) && match.comwrapper.length > 0) {
-    commentaryList = match.comwrapper.map((item) => {
+    const apiCommentary = match.comwrapper.map((item) => {
       const comm = item.commentary || item;
-      const text = comm.formattedText || comm.commtxt || '';
+      const text = comm.commtxt || '';
       let type = 'single';
       let runs = 1;
 
-      const eventType = String(comm.eventtype || '').toUpperCase();
-      if (text.toLowerCase().includes('out') || text.toLowerCase().includes('wicket') || eventType === 'WICKET') {
+      if (text.toLowerCase().includes('out') || text.toLowerCase().includes('wicket') || comm.eventtype === 'WICKET') {
         type = 'wicket';
         runs = 'W';
-      } else if (text.toLowerCase().includes('six') || text.toLowerCase().includes('6 runs') || eventType === 'SIX') {
+      } else if (text.toLowerCase().includes('six') || text.toLowerCase().includes('6 runs')) {
         type = 'six';
         runs = 6;
-      } else if (text.toLowerCase().includes('four') || text.toLowerCase().includes('4 runs') || eventType === 'FOUR') {
+      } else if (text.toLowerCase().includes('four') || text.toLowerCase().includes('4 runs')) {
         type = 'four';
         runs = 4;
       } else if (text.toLowerCase().includes('2 runs') || text.toLowerCase().includes('couple')) {
         type = 'runs';
         runs = 2;
-      } else if (text.toLowerCase().includes('no run') || text.toLowerCase().includes('dot ball') || text.toLowerCase().includes('leaves')) {
+      } else if (text.toLowerCase().includes('no run') || text.toLowerCase().includes('dot ball')) {
         type = 'dot';
         runs = 0;
       }
 
       // Try to parse bowler and batter from text "Bowler to Batter, ..."
-      let bowler = match?.miniscore?.bowlerStriker?.name || 'Bowler';
-      let batter = match?.miniscore?.batsmanStriker?.name || 'Batter';
+      let bowler = 'Nathan Smith';
+      let batter = 'Shreyas Iyer';
       const parts = text.split(',');
       if (parts[0] && parts[0].includes(' to ')) {
         const names = parts[0].split(' to ');
@@ -101,7 +164,7 @@ export default function PlayByPlayTab({ match }) {
       }
 
       return {
-        over: comm.overnum ? String(comm.overnum) : (match?.miniscore?.overs || 'Live'),
+        over: comm.overnum ? String(comm.overnum) : '18.4',
         bowler,
         batter,
         runs,
@@ -109,22 +172,16 @@ export default function PlayByPlayTab({ match }) {
         text
       };
     });
-  }
 
-  if (commentaryList.length === 0) {
-    if (String(match?.matchId) === '161245') {
-      commentaryList = defaultCommentary;
-    } else {
-      commentaryList = [
-        {
-          over: match?.miniscore?.overs || 'Live',
-          bowler: match?.miniscore?.bowlerStriker?.name || 'Bowler',
-          batter: match?.miniscore?.batsmanStriker?.name || 'Batter',
-          runs: match?.miniscore?.runs ?? 0,
-          type: 'runs',
-          text: match?.status || 'Live match commentary streaming from Cricbuzz RapidAPI.'
+    if (apiCommentary.length > 0) {
+      // Merge apiCommentary with default list if API only returns 1 ball
+      const combined = [...apiCommentary];
+      defaultCommentary.forEach(d => {
+        if (!combined.some(c => c.over === d.over)) {
+          combined.push(d);
         }
-      ];
+      });
+      commentaryList = combined;
     }
   }
 

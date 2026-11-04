@@ -7,22 +7,29 @@ import React from 'react';
 export default function CricketPitch({ match }) {
   if (!match) return null;
 
-  const { miniscore, status, isRecent, team2 } = match;
-  const target = miniscore?.target || 143;
-  const runs = miniscore?.runs ?? (team2?.score ? parseInt(team2.score.split('/')[0], 10) : 116);
+  const { miniscore, status, isRecent, team1, team2 } = match;
+  const t1Runs = parseInt(team1?.score?.split('/')[0], 10) || 226;
+  const target = miniscore?.target || (t1Runs + 1);
+  const runs = miniscore?.runs ?? (team2?.score ? parseInt(team2.score.split('/')[0], 10) : 142);
+
+  const isWon = (status || '').toLowerCase().includes('won by') || 
+                (status || '').toLowerCase().includes('beat') || 
+                (status || '').toLowerCase().includes('drawn') || 
+                (status || '').toLowerCase().includes('tied');
+  const isCompleted = isRecent || isWon;
 
   // Calculate target progress percentage
-  const progressPercent = isRecent 
-    ? 90 
-    : (target && runs ? Math.min(100, Math.max(10, Math.round((runs / target) * 100))) : 81);
+  const progressPercent = isCompleted 
+    ? 100 
+    : (target && runs ? Math.min(100, Math.max(8, Math.round((runs / target) * 100))) : 65);
 
-  const displayStatus = status || miniscore?.custstatus || "India need 27 runs in 80 balls - DLS Target 143";
+  const displayStatus = status || miniscore?.custstatus || `${team2?.name || 'Chasing team'} need ${Math.max(0, target - runs)} runs`;
 
   return (
     <div className="w-full px-4 my-1 flex flex-col items-center flex-shrink-0">
       {/* Match Status text */}
       <div className="text-[10px] font-bold text-amber-300/95 tracking-wide mb-1 text-center truncate max-w-full flex items-center gap-1.5 justify-center">
-        {isRecent && <span className="text-emerald-400">✓</span>}
+        {isCompleted && <span className="text-emerald-400">✓</span>}
         <span className="truncate">{displayStatus}</span>
       </div>
 

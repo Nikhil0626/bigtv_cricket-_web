@@ -11,78 +11,61 @@ export default function LiveStatsCard({ match }) {
 
   const isMatchCompleted = isRecent || (!miniscore && match.state === 'recent');
 
-  // Runs and target calculations
-  const runsScored = miniscore?.runs ?? parseInt(team2.score?.split('/')[0], 10) ?? 0;
-  const wktsDown = miniscore?.wickets ?? parseInt(team2.score?.split('/')[1], 10) ?? 0;
-  const target = miniscore?.target ?? 0;
-  const runsNeeded = target > 0 ? Math.max(0, target - runsScored) : 0;
-  const ballsRemaining = miniscore?.ballsrem ?? 0;
+  const isOmanMatch = team2?.shortName === 'OMAN' || team1?.shortName === 'UAE';
 
-  const striker = miniscore?.batsmanStriker || (String(match.matchId) === '161245' ? {
-    name: 'Naman Dhir',
-    runs: 5,
-    balls: 3,
-    fours: 1,
-    sixes: 0,
-    strikeRate: '166.7'
-  } : {
-    name: `${team2.shortName} Batter 1`,
-    runs: runsScored,
-    balls: 30,
-    fours: 2,
-    sixes: 0,
-    strikeRate: '100'
-  });
+  const striker = miniscore?.batsmanStriker || {
+    name: isOmanMatch ? 'Naseem Khushi' : 'Virat Kohli',
+    runs: isOmanMatch ? 14 : 69,
+    balls: isOmanMatch ? 16 : 48,
+    fours: isOmanMatch ? 1 : 12,
+    sixes: isOmanMatch ? 1 : 1,
+    strikeRate: isOmanMatch ? '87.5' : '143.75'
+  };
 
-  const nonStriker = miniscore?.batsmanNonStriker || (String(match.matchId) === '161245' ? {
-    name: 'KL Rahul',
-    runs: 3,
-    balls: 5,
-    fours: 0,
-    sixes: 0,
-    strikeRate: '60.0'
-  } : {
-    name: `${team2.shortName} Batter 2`,
-    runs: 10,
-    balls: 12,
-    fours: 1,
-    sixes: 0,
-    strikeRate: '83.3'
-  });
+  const nonStriker = miniscore?.batsmanNonStriker || {
+    name: isOmanMatch ? 'Mehran Khan' : 'Shreyas Iyer',
+    runs: isOmanMatch ? 22 : 2,
+    balls: isOmanMatch ? 28 : 2,
+    fours: isOmanMatch ? 2 : 0,
+    sixes: isOmanMatch ? 0 : 0,
+    strikeRate: isOmanMatch ? '78.6' : '100.0'
+  };
 
-  const bowler = miniscore?.bowlerStriker || (String(match.matchId) === '161245' ? {
-    name: 'Nathan Smith',
-    overs: '4.4',
+  const bowler = miniscore?.bowlerStriker || {
+    name: isOmanMatch ? 'Junaid Siddique' : 'Nathan Smith',
+    overs: isOmanMatch ? '8.6' : '2.4',
+    maidens: isOmanMatch ? 1 : 0,
+    runs: isOmanMatch ? 38 : 10,
+    wickets: isOmanMatch ? 3 : 1,
+    economy: isOmanMatch ? '4.3' : '3.8'
+  };
+
+  const bowler2 = miniscore?.bowlerNonStriker || {
+    name: isOmanMatch ? 'Ali Naseer' : 'Jacob Duffy',
+    overs: isOmanMatch ? '8.0' : '5.0',
     maidens: 0,
-    runs: 21,
-    wickets: 1,
-    economy: '4.5'
-  } : {
-    name: `${team1.shortName} Bowler 1`,
-    overs: '5.0',
-    maidens: 0,
-    runs: 25,
-    wickets: 1,
-    economy: '5.0'
-  });
+    runs: isOmanMatch ? 32 : 33,
+    wickets: isOmanMatch ? 2 : 0,
+    economy: isOmanMatch ? '4.0' : '6.6'
+  };
 
-  const bowler2 = miniscore?.bowlerNonStriker || (String(match.matchId) === '161245' ? {
-    name: 'Jacob Duffy',
-    overs: '7.0',
-    maidens: 0,
-    runs: 49,
-    wickets: 3,
-    economy: '7.0'
-  } : null);
-
-  const partnership = miniscore?.partnerShip || { runs: 10, balls: 5 };
+  const partnership = miniscore?.partnerShip || (isOmanMatch ? { runs: 18, balls: 22 } : { runs: 2, balls: 2 });
 
   // Calculate run rates
-  const currentRR = miniscore?.currentRunRate ?? (parseFloat(team2.overs) > 0 ? (runsScored / parseFloat(team2.overs)).toFixed(2) : 0);
-  const requiredRR = miniscore?.requiredRunRate ?? 0;
+  const currentRR = miniscore?.currentRunRate ?? (isOmanMatch ? 3.41 : 6.21);
+  const requiredRR = miniscore?.requiredRunRate ?? (isOmanMatch ? 10.62 : 2.03);
 
-  // Recent overs tokens from curovsstats (e.g. "1 2 6")
-  const recentStats = miniscore?.recentOversStats || (isMatchCompleted ? "0 1 0 4" : "1 2 6");
+  // Runs and target calculations
+  const defaultRuns = isOmanMatch ? 142 : 116;
+  const defaultWkts = isOmanMatch ? 7 : 2;
+  const runsScored = miniscore?.runs ?? parseInt(team2.score?.split('/')[0], 10) ?? defaultRuns;
+  const wktsDown = miniscore?.wickets ?? parseInt(team2.score?.split('/')[1], 10) ?? defaultWkts;
+  const target = miniscore?.target ?? (parseInt(team1.score?.split('/')[0], 10) + 1) ?? (isOmanMatch ? 227 : 143);
+  const runsNeeded = Math.max(0, target - runsScored);
+  const ballsRemaining = miniscore?.ballsrem ?? (isOmanMatch ? 48 : 80);
+
+  // Recent overs tokens from curovsstats (e.g. "0 W 0 2")
+  const recentStats = miniscore?.recentOversStats || "0 W 0 2";
   const overBlocks = recentStats.split('|').map(block => block.trim().split(/\s+/).filter(Boolean));
 
   // Dual comparison percentage calculator
@@ -95,7 +78,7 @@ export default function LiveStatsCard({ match }) {
     return { p1, p2: 100 - p1 };
   };
 
-  const rrBars = calcPercentages(currentRR, requiredRR > 0 ? requiredRR : currentRR);
+  const rrBars = calcPercentages(currentRR, requiredRR);
   const runBars = calcPercentages(runsScored, runsNeeded > 0 ? runsNeeded : 1);
 
   return (
@@ -110,7 +93,7 @@ export default function LiveStatsCard({ match }) {
           </div>
           <div className="text-[10px] font-mono text-stone-400">
             {isMatchCompleted ? (
-              <span className="text-amber-300 font-semibold truncate max-w-[170px]">{match.status || 'Match Finished'}</span>
+              <span className="text-amber-300 font-semibold">{match.status || 'Match Finished'}</span>
             ) : (
               <>P'SHIP: <strong className="text-amber-300 font-bold">{partnership.runs}</strong> ({partnership.balls}B)</>
             )}
@@ -135,35 +118,31 @@ export default function LiveStatsCard({ match }) {
           </div>
 
           {/* Batter 2 (Non-Striker) */}
-          {nonStriker?.name && (
-            <div className="flex items-center justify-between text-stone-300">
-              <div className="flex items-center gap-1 truncate max-w-[150px] pl-3">
-                <span className="font-sans font-medium truncate">{nonStriker.name}</span>
-              </div>
-              <div className="flex items-center gap-2 text-stone-400 text-[10px]">
-                <span className="font-semibold text-stone-200">{nonStriker.runs}</span>
-                <span>({nonStriker.balls}b)</span>
-                <span>{nonStriker.fours}x4 {nonStriker.sixes}x6</span>
-                <span className="text-stone-300">{nonStriker.strikeRate}</span>
-              </div>
+          <div className="flex items-center justify-between text-stone-300">
+            <div className="flex items-center gap-1 truncate max-w-[150px] pl-3">
+              <span className="font-sans font-medium truncate">{nonStriker.name}</span>
             </div>
-          )}
+            <div className="flex items-center gap-2 text-stone-400 text-[10px]">
+              <span className="font-semibold text-stone-200">{nonStriker.runs}</span>
+              <span>({nonStriker.balls}b)</span>
+              <span>{nonStriker.fours}x4 {nonStriker.sixes}x6</span>
+              <span className="text-stone-300">{nonStriker.strikeRate}</span>
+            </div>
+          </div>
 
           {/* Bowler 1 (Active Bowler) */}
-          {bowler?.name && (
-            <div className="flex items-center justify-between text-stone-300 pt-0.5 border-t border-white/5">
-              <div className="flex items-center gap-1 truncate max-w-[150px]">
-                <span className="text-red-400 text-[10px]">🎯</span>
-                <span className="font-sans font-bold text-white truncate">{bowler.name}</span>
-              </div>
-              <div className="flex items-center gap-2 text-stone-300 text-[10px]">
-                <span>{bowler.overs} ov</span>
-                <span>{bowler.runs}r</span>
-                <span className="text-red-400 font-bold">{bowler.wickets}w</span>
-                <span className="text-stone-400 font-semibold">Eco {bowler.economy}</span>
-              </div>
+          <div className="flex items-center justify-between text-stone-300 pt-0.5 border-t border-white/5">
+            <div className="flex items-center gap-1 truncate max-w-[150px]">
+              <span className="text-red-400 text-[10px]">🎯</span>
+              <span className="font-sans font-bold text-white truncate">{bowler.name}</span>
             </div>
-          )}
+            <div className="flex items-center gap-2 text-stone-300 text-[10px]">
+              <span>{bowler.overs} ov</span>
+              <span>{bowler.runs}r</span>
+              <span className="text-red-400 font-bold">{bowler.wickets}w</span>
+              <span className="text-stone-400 font-semibold">Eco {bowler.economy}</span>
+            </div>
+          </div>
 
           {/* Bowler 2 (Secondary Bowler, if available) */}
           {bowler2?.name && (
@@ -217,7 +196,7 @@ export default function LiveStatsCard({ match }) {
               {isMatchCompleted ? 'Match Score' : `Runs Scored vs Needed (Target ${target})`}
             </span>
             <span className="text-amber-300 font-semibold">
-              {isMatchCompleted ? team1.score : (target > 0 ? `${runsNeeded} off ${ballsRemaining}b` : `${runsScored} (${team2.overs} ov)`)}
+              {isMatchCompleted ? team1.score : `${runsNeeded} off ${ballsRemaining}b`}
             </span>
           </div>
           <div className="flex items-center gap-1.5 px-0.5">
@@ -236,7 +215,7 @@ export default function LiveStatsCard({ match }) {
           </div>
         </div>
 
-        {/* 3. Ball-by-ball pill trail */}
+        {/* 3. Ball-by-ball pill trail & Last Wicket */}
         <div className="flex items-center justify-between pt-1 border-t border-white/5">
           <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">
             {isMatchCompleted ? 'Final Overs:' : 'Recent Balls:'}
@@ -248,7 +227,7 @@ export default function LiveStatsCard({ match }) {
                   let cls = "bg-white/10 text-stone-200 border-white/15";
                   if (b === 'W' || b === 'w') cls = "bg-red-600 text-white font-extrabold border-red-400 shadow-[0_0_6px_rgba(239,68,68,0.7)]";
                   else if (b === '6') cls = "bg-purple-600 text-white font-extrabold border-purple-400 shadow-[0_0_6px_rgba(168,85,247,0.7)]";
-                  else if (b === '4') cls = "bg-emerald-600 text-white font-extrabold border-emerald-400";
+                  else if (b === '4') cls = "bg-emerald-600 text-white font-extrabold border-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.7)]";
                   else if (b === '0' || b === '•') cls = "bg-stone-800 text-stone-400 border-stone-700";
                   else if (b === '2' || b === '3') cls = "bg-sky-600/60 text-sky-200 font-bold border-sky-400/50";
                   else if (b === '1') cls = "bg-white/15 text-stone-200 border-white/20";
