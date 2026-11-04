@@ -31,9 +31,15 @@ export default function App() {
   const [showMatchPicker, setShowMatchPicker] = useState(false);
 
   const selectedMatchIdRef = useRef(selectedMatchId);
+  const matchesRef = useRef(matches);
+
   useEffect(() => {
     selectedMatchIdRef.current = selectedMatchId;
   }, [selectedMatchId]);
+
+  useEffect(() => {
+    matchesRef.current = matches;
+  }, [matches]);
 
   // Format time helper
   const updateLastSyncedTime = () => {
@@ -43,7 +49,7 @@ export default function App() {
   };
 
   // 1. Initial Load: Fetch Recent Matches API
-  // curl -X 'GET' 'https://api.pravasamedia.com/api/v1/cricket/matches/recent'
+  // GET https://api.pravasamedia.com/api/v1/cricket/matches/recent
   const loadInitialData = async () => {
     setLoading(true);
     setErrorMessage(null);
@@ -52,17 +58,18 @@ export default function App() {
       const recentRes = await getRecentMatches();
       const fetchedMatches = recentRes.matches || [];
       setMatches(fetchedMatches);
+      matchesRef.current = fetchedMatches;
 
       if (fetchedMatches.length > 0) {
-        // Step B: Explicitly extract the matchId key from the recent matches API
-        const firstMatch = fetchedMatches[0];
-        const matchIdKey = String(firstMatch.matchId || "1000");
+        // Step B: Pick the first match (prioritizing 'live' state if available)
+        const liveMatch = fetchedMatches.find(m => String(m.state || '').toLowerCase() === 'live') || fetchedMatches[0];
+        const matchIdKey = String(liveMatch.matchId || "176375");
         setSelectedMatchId(matchIdKey);
+        selectedMatchIdRef.current = matchIdKey;
         
-        // Step C: Fetch detailed score data using the extracted matchId key
-        // curl -X 'GET' 'https://api.pravasamedia.com/api/v1/cricket/matches/{matchId}/livescore'
-        const scoreRes = await getMatchLiveScore(matchIdKey);
-        const normalized = normalizeMatch(firstMatch, scoreRes.scoreData);
+        // Step C: Fetch detailed score data using liveCrickBuzzUrl and user access key
+        const scoreRes = await getMatchLiveScore(matchIdKey, liveMatch);
+        const normalized = normalizeMatch(liveMatch, scoreRes.scoreData, scoreRes.scorecardData);
         setCurrentMatch(normalized);
         setSecondsLeft(FIVE_MINUTES_SECONDS);
         updateLastSyncedTime();
@@ -83,12 +90,13 @@ export default function App() {
   const handleSelectMatch = async (matchIdKey) => {
     const targetMatchId = String(matchIdKey);
     setSelectedMatchId(targetMatchId);
+    selectedMatchIdRef.current = targetMatchId;
     setShowMatchPicker(false);
     setRefreshing(true);
     try {
-      const matchOverview = matches.find(m => String(m.matchId) === targetMatchId);
-      const scoreRes = await getMatchLiveScore(targetMatchId);
-      const normalized = normalizeMatch(matchOverview, scoreRes.scoreData);
+      const matchOverview = matchesRef.current.find(m => String(m.matchId) === targetMatchId);
+      const scoreRes = await getMatchLiveScore(targetMatchId, matchOverview);
+      const normalized = normalizeMatch(matchOverview, scoreRes.scoreData, scoreRes.scorecardData);
       setCurrentMatch(normalized);
       setSecondsLeft(FIVE_MINUTES_SECONDS);
       updateLastSyncedTime();
@@ -99,22 +107,23 @@ export default function App() {
     }
   };
 
-  // 4. Refresh current match live score using matchId key
+  // 4. Refresh current match live score using liveCrickBuzzUrl
   const handleRefresh = useCallback(async () => {
     const matchIdKey = selectedMatchIdRef.current;
     if (!matchIdKey) return;
 
     setRefreshing(true);
     try {
-      const [recentRes, scoreRes] = await Promise.all([
-        getRecentMatches(),
-        getMatchLiveScore(matchIdKey)
-      ]);
-      if (recentRes.matches) {
+      const recentRes = await getRecentMatches();
+      let updatedMatches = matchesRef.current;
+      if (recentRes.matches && recentRes.matches.length > 0) {
         setMatches(recentRes.matches);
+        matchesRef.current = recentRes.matches;
+        updatedMatches = recentRes.matches;
       }
-      const matchOverview = recentRes.matches?.find(m => String(m.matchId) === String(matchIdKey));
-      const normalized = normalizeMatch(matchOverview, scoreRes.scoreData);
+      const matchOverview = updatedMatches.find(m => String(m.matchId) === String(matchIdKey));
+      const scoreRes = await getMatchLiveScore(matchIdKey, matchOverview);
+      const normalized = normalizeMatch(matchOverview, scoreRes.scoreData, scoreRes.scorecardData);
       setCurrentMatch(normalized);
       setSecondsLeft(FIVE_MINUTES_SECONDS);
       updateLastSyncedTime();
@@ -196,24 +205,34 @@ export default function App() {
 
             {/* Dropdown Match Switcher if multiple matches */}
             {showMatchPicker && matches.length > 1 && (
-              <div className="absolute top-7 left-1/2 -translate-x-1/2 w-56 rounded-xl bg-black/90 border border-white/15 p-1 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in zoom-in-95">
-                <div className="text-[9px] uppercase font-bold text-stone-400 px-2 py-1 border-b border-white/10">
-                  Select Match
+              <div className="absolute top-7 left-1/2 -translate-x-1/2 w-64 rounded-xl bg-black/95 border border-white/15 p-1 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in zoom-in-95">
+                <div className="text-[9px] uppercase font-bold text-stone-400 px-2 py-1 border-b border-white/10 flex items-center justify-between">
+                  <span>Select Match</span>
+                  <span className="text-stone-500">{matches.length} Available</span>
                 </div>
-                {matches.map(m => (
-                  <button
-                    key={m.matchId}
-                    onClick={() => handleSelectMatch(m.matchId)}
-                    className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors ${
-                      String(m.matchId) === String(selectedMatchId)
-                        ? 'bg-red-950/80 text-white font-bold border border-red-500/40'
-                        : 'text-stone-300 hover:bg-white/10'
-                    }`}
-                  >
-                    <span className="truncate">{m.team1ShortName || m.team1Name} vs {m.team2ShortName || m.team2Name}</span>
-                    <span className="text-[9px] px-1 rounded bg-stone-800 text-amber-300">{m.matchFormat || 'T20'}</span>
-                  </button>
-                ))}
+                {matches.map(m => {
+                  const isSelected = String(m.matchId) === String(selectedMatchId);
+                  const isMatchLive = String(m.state || '').toLowerCase() === 'live';
+                  return (
+                    <button
+                      key={m.matchId}
+                      onClick={() => handleSelectMatch(m.matchId)}
+                      className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors my-0.5 ${
+                        isSelected
+                          ? 'bg-red-950/90 text-white font-bold border border-red-500/50 shadow-inner'
+                          : 'text-stone-300 hover:bg-white/10'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className={`w-1.5 h-1.5 rounded-full ${isMatchLive ? 'bg-red-500 animate-pulse-dot' : 'bg-stone-500'}`} />
+                        <span className="truncate">{m.team1ShortName || m.team1Name} vs {m.team2ShortName || m.team2Name}</span>
+                      </div>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold ${isMatchLive ? 'bg-red-900/60 text-red-300' : 'bg-stone-800 text-stone-400'}`}>
+                        {isMatchLive ? 'LIVE' : (m.matchFormat || 'ODI')}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -233,7 +252,7 @@ export default function App() {
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <div className="w-10 h-10 rounded-full border-2 border-red-500/30 border-t-red-500 animate-spin mb-3" />
             <p className="text-xs font-semibold text-stone-200">Loading Cricket Scorecard...</p>
-            <p className="text-[10px] text-stone-400 mt-0.5">Fetching matchId {selectedMatchId || '...'} from pravasamedia API</p>
+            <p className="text-[10px] text-stone-400 mt-0.5">Fetching match {selectedMatchId || '...'} from Cricbuzz RapidAPI</p>
           </div>
         )}
 
@@ -262,10 +281,10 @@ export default function App() {
               {/* 2. Cricket Pitch Graphic (Isometric 3D pitch matching the NFL yardage tracker) */}
               <CricketPitch match={currentMatch} />
 
-              {/* 3. Innings Breakdown Table (WAS vs SF quarters table style) */}
+              {/* 3. Innings Breakdown Table (Quarters table style) */}
               <InningsTable match={currentMatch} />
 
-              {/* 4. Action Banner ("Open in tv" button + 5-min Live Sync + Broadcaster info) */}
+              {/* 4. Action Banner (Live Sync + 5-min Countdown + Broadcaster info) */}
               <ActionBanner 
                 match={currentMatch}
                 onRefresh={handleRefresh}

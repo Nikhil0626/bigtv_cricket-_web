@@ -6,6 +6,46 @@ import React from 'react';
 export default function TeamLogo({ shortName = '', name = '', size = 52, className = '' }) {
   const code = (shortName || name || '').toUpperCase().trim();
 
+  // UAE (United Arab Emirates)
+  if (code.includes('UAE') || code.includes('EMIRATES')) {
+    return (
+      <div 
+        style={{ width: size, height: size }}
+        className={`relative rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-gradient-to-br from-[#00732f] via-[#111111] to-[#ff0000] p-1 border border-emerald-400/40 ${className}`}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+          <circle cx="50" cy="50" r="46" fill="#0f172a" stroke="#00732f" strokeWidth="4" />
+          <rect x="20" y="24" width="60" height="17" fill="#00732f" rx="3" />
+          <rect x="20" y="41" width="60" height="18" fill="#ffffff" />
+          <rect x="20" y="59" width="60" height="17" fill="#000000" rx="3" />
+          <rect x="18" y="24" width="18" height="52" fill="#ff0000" rx="3" />
+          <circle cx="50" cy="50" r="16" fill="#0f172a" stroke="#ffffff" strokeWidth="2" />
+          <text x="50" y="55" textAnchor="middle" fill="#ffffff" fontSize="11" fontWeight="900" fontFamily="sans-serif">UAE</text>
+        </svg>
+      </div>
+    );
+  }
+
+  // OMAN
+  if (code.includes('OMA') || code.includes('OMAN')) {
+    return (
+      <div 
+        style={{ width: size, height: size }}
+        className={`relative rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-gradient-to-br from-[#c8102e] via-[#008000] to-[#111111] p-1 border border-red-400/40 ${className}`}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+          <circle cx="50" cy="50" r="46" fill="#0f172a" stroke="#c8102e" strokeWidth="4" />
+          <rect x="20" y="24" width="60" height="17" fill="#ffffff" rx="3" />
+          <rect x="20" y="41" width="60" height="18" fill="#c8102e" />
+          <rect x="20" y="59" width="60" height="17" fill="#008000" rx="3" />
+          <rect x="18" y="24" width="18" height="52" fill="#c8102e" rx="3" />
+          <circle cx="50" cy="50" r="16" fill="#0f172a" stroke="#ffffff" strokeWidth="2" />
+          <text x="50" y="55" textAnchor="middle" fill="#ffffff" fontSize="10" fontWeight="900" fontFamily="sans-serif">OMA</text>
+        </svg>
+      </div>
+    );
+  }
+
   // Color schemes and badge styles per team
   if (code.includes('NZ') || code.includes('NEW ZEALAND')) {
     return (

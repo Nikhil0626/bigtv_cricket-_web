@@ -6,6 +6,14 @@ export default function PlayByPlayTab({ match }) {
   // Baseline commentary for India Tour of New Zealand 1st ODI
   const defaultCommentary = [
     {
+      over: '22.4',
+      bowler: 'Nathan Smith',
+      batter: 'Naman Dhir',
+      runs: 4,
+      type: 'four',
+      text: 'Nathan Smith to Naman Dhir, FOUR, no half-measures this time as Naman Dhir pulls emphatically through mid-wicket to finish the job. India win by 5 wickets and go 1-0 up in the series.'
+    },
+    {
       over: '18.4',
       bowler: 'Nathan Smith',
       batter: 'Shreyas Iyer',
@@ -52,54 +60,39 @@ export default function PlayByPlayTab({ match }) {
       runs: 4,
       type: 'four',
       text: 'FOUR! Glorious cover drive! Kohli leans into the half-volley and creams it through extra cover for a boundary!'
-    },
-    {
-      over: '17.4',
-      bowler: 'Jacob Duffy',
-      batter: 'Virat Kohli',
-      runs: 2,
-      type: 'runs',
-      text: 'Whipped off the hips through square leg, sharp running between wickets for two.'
-    },
-    {
-      over: '17.3',
-      bowler: 'Jacob Duffy',
-      batter: 'Virat Kohli',
-      runs: 0,
-      type: 'dot',
-      text: 'Beaten outside off! Nip back off the seam, Kohli leaves it alone on length.'
     }
   ];
 
   // Parse comwrapper from match if available
-  let commentaryList = defaultCommentary;
+  let commentaryList = [];
   if (match?.comwrapper && Array.isArray(match.comwrapper) && match.comwrapper.length > 0) {
-    const apiCommentary = match.comwrapper.map((item) => {
+    commentaryList = match.comwrapper.map((item) => {
       const comm = item.commentary || item;
-      const text = comm.commtxt || '';
+      const text = comm.formattedText || comm.commtxt || '';
       let type = 'single';
       let runs = 1;
 
-      if (text.toLowerCase().includes('out') || text.toLowerCase().includes('wicket') || comm.eventtype === 'WICKET') {
+      const eventType = String(comm.eventtype || '').toUpperCase();
+      if (text.toLowerCase().includes('out') || text.toLowerCase().includes('wicket') || eventType === 'WICKET') {
         type = 'wicket';
         runs = 'W';
-      } else if (text.toLowerCase().includes('six') || text.toLowerCase().includes('6 runs')) {
+      } else if (text.toLowerCase().includes('six') || text.toLowerCase().includes('6 runs') || eventType === 'SIX') {
         type = 'six';
         runs = 6;
-      } else if (text.toLowerCase().includes('four') || text.toLowerCase().includes('4 runs')) {
+      } else if (text.toLowerCase().includes('four') || text.toLowerCase().includes('4 runs') || eventType === 'FOUR') {
         type = 'four';
         runs = 4;
       } else if (text.toLowerCase().includes('2 runs') || text.toLowerCase().includes('couple')) {
         type = 'runs';
         runs = 2;
-      } else if (text.toLowerCase().includes('no run') || text.toLowerCase().includes('dot ball')) {
+      } else if (text.toLowerCase().includes('no run') || text.toLowerCase().includes('dot ball') || text.toLowerCase().includes('leaves')) {
         type = 'dot';
         runs = 0;
       }
 
       // Try to parse bowler and batter from text "Bowler to Batter, ..."
-      let bowler = 'Nathan Smith';
-      let batter = 'Shreyas Iyer';
+      let bowler = match?.miniscore?.bowlerStriker?.name || 'Bowler';
+      let batter = match?.miniscore?.batsmanStriker?.name || 'Batter';
       const parts = text.split(',');
       if (parts[0] && parts[0].includes(' to ')) {
         const names = parts[0].split(' to ');
@@ -108,7 +101,7 @@ export default function PlayByPlayTab({ match }) {
       }
 
       return {
-        over: comm.overnum ? String(comm.overnum) : '18.4',
+        over: comm.overnum ? String(comm.overnum) : (match?.miniscore?.overs || 'Live'),
         bowler,
         batter,
         runs,
@@ -116,16 +109,22 @@ export default function PlayByPlayTab({ match }) {
         text
       };
     });
+  }
 
-    if (apiCommentary.length > 0) {
-      // Merge apiCommentary with default list if API only returns 1 ball
-      const combined = [...apiCommentary];
-      defaultCommentary.forEach(d => {
-        if (!combined.some(c => c.over === d.over)) {
-          combined.push(d);
+  if (commentaryList.length === 0) {
+    if (String(match?.matchId) === '161245') {
+      commentaryList = defaultCommentary;
+    } else {
+      commentaryList = [
+        {
+          over: match?.miniscore?.overs || 'Live',
+          bowler: match?.miniscore?.bowlerStriker?.name || 'Bowler',
+          batter: match?.miniscore?.batsmanStriker?.name || 'Batter',
+          runs: match?.miniscore?.runs ?? 0,
+          type: 'runs',
+          text: match?.status || 'Live match commentary streaming from Cricbuzz RapidAPI.'
         }
-      });
-      commentaryList = combined;
+      ];
     }
   }
 
